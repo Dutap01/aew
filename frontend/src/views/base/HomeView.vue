@@ -26,13 +26,11 @@ onMounted(async () => {
     <p>서버 상태: <strong>{{ serverStatus }}</strong></p>
 
     <nav>
-      <RouterLink to="/admin">관리자</RouterLink> |
-      <RouterLink to="/manager">매니저</RouterLink> |
       <RouterLink v-if="!authStore.isLoggedIn" to="/login">로그인</RouterLink>
       <a v-else href="#" @click.prevent="authStore.logout()">로그아웃 ({{ authStore.user.name }})</a>
     </nav>
 
-    <BaseButton @click="logStore.addLog('button clicked')">클릭</BaseButton>
+    <BaseButton @click="logStore.addLog('button clicked')">김롱대는 닭</BaseButton>
     <ul>
       <li v-for="(log, i) in logStore.logs" :key="i">{{ log }}</li>
     </ul>
