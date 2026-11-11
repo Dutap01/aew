@@ -1,0 +1,4 @@
+# 배포(prod) 프로파일 설정
+logging:
+  level:
+    root: INFO

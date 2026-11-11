@@ -1,0 +1,28 @@
+# 배포용 이미지: 프론트 빌드 -> Spring static 에 포함 -> jar 실행
+# ---- build stage ----
+FROM ubuntu:26.04 AS build
+ENV DEBIAN_FRONTEND=noninteractive LANG=C.UTF-8 TZ=Asia/Seoul
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends ca-certificates tzdata openjdk-21-jdk-headless maven
+COPY setting-script/install_vue.sh /tmp/install_vue.sh
+RUN bash /tmp/install_vue.sh
+
+WORKDIR /build
+COPY frontend/ frontend/
+RUN cd frontend && npm ci && npm run build
+
+COPY backend/ backend/
+RUN rm -rf backend/src/main/resources/static/* \
+ && cp -r frontend/dist/* backend/src/main/resources/static/ \
+ && cd backend && mvn -B -q package -DskipTests
+
+# ---- runtime stage ----
+FROM ubuntu:26.04
+ENV DEBIAN_FRONTEND=noninteractive LANG=C.UTF-8 TZ=Asia/Seoul
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends openjdk-21-jre-headless tzdata \
+ && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+COPY --from=build /build/backend/target/*.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]

@@ -1,0 +1,19 @@
+# backend
+backend/target/
+*.class
+*.jar
+!**/.mvn/wrapper/*.jar
+
+# frontend
+frontend/node_modules/
+frontend/dist/
+backend/src/main/resources/static/*
+!backend/src/main/resources/static/.gitkeep
+
+# env / ide
+.env
+.idea/
+.vscode/
+*.iml
+*.log
+.DS_Store

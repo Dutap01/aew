@@ -1,0 +1,8 @@
+/* 공통 스타일 (스타일가이드 기준 토큰) */
+:root {
+  --color-primary: #2563eb;
+  --color-text: #1f2937;
+  --color-bg: #ffffff;
+  --font-base: 'Pretendard', system-ui, sans-serif;
+}
+body { margin: 0; font-family: var(--font-base); color: var(--color-text); background: var(--color-bg); }

@@ -1,0 +1,25 @@
+# release 브랜치에 머지되면 GitLab Runner(shell executor)가 배포
+stages:
+  - build
+  - deploy
+
+build:
+  stage: build
+  script:
+    - docker build -f Dockerfile.release -t web-project:$CI_COMMIT_SHORT_SHA .
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "release"'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+  tags:
+    - deploy   # 러너 등록 시 지정한 태그
+
+deploy:
+  stage: deploy
+  script:
+    - ./build_docker.sh $CI_COMMIT_SHORT_SHA
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "release"'
+  environment:
+    name: production
+  tags:
+    - deploy

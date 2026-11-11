@@ -1,0 +1,12 @@
+# [배포용] build_docker.sh 에서 사용
+services:
+  app:
+    image: ${APP_IMAGE:-web-project:latest}
+    container_name: web-project-app
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - TZ=Asia/Seoul
+  # TODO: 도메인 연결 시 리버스 프록시(Caddy/Nginx) 서비스 추가
