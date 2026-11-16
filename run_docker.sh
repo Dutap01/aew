@@ -6,6 +6,12 @@ cd "$(dirname "$0")"
 IMAGE=web-project-dev
 CONTAINER=web-project-dev
 
+if [[ "${1:-}" == "--rebuild" ]]; then
+	docker rm -f "$CONTAINER" 2>/dev/null || true
+	docker build -f Dockerfile -t "IMAGE" .
+	docker image prune -f
+fi
+
 if ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
   docker build -f Dockerfile -t "$IMAGE" .
 fi

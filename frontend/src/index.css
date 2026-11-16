@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+/* 디자인 토큰 — 색/반경/그림자는 여기서만 정의하고 유틸리티(bg-brand, rounded-panel, shadow-card …)로 재사용 */
+@theme {
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui,
+    "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+
+  /* 브랜드 초록 */
+  --color-brand-50: #eef7ee;
+  --color-brand-100: #dcefdc;
+  --color-brand-200: #b9dfba;
+  --color-brand: #4caf50;
+  --color-brand-600: #43a047;
+  --color-brand-700: #388e3c;
+  --color-brand-800: #2e7d32;
+  --color-brand-900: #1b4d1e;
+
+  /* 포인트 */
+  --color-grape: #8b5cf6;
+  --color-grape-50: #f3effe;
+  --color-navy: #1e3a5f;
+  --color-wait: #f59e0b;
+  --color-alert: #ef4444;
+  --color-sky-soft: #eef4fd;
+
+  /* 중립 */
+  --color-panel: #f7f8f6;
+  --color-ink: #1c2420;
+  --color-muted: #858c87;
+  --color-line: #eceeea;
+  --color-track: #f0f2ee;
+
+  /* 반경 */
+  --radius-panel: 28px;
+  --radius-card: 1rem;
+
+  /* 그림자 */
+  --shadow-card: 0 1px 2px rgb(20 40 20 / 0.04), 0 1px 3px rgb(20 40 20 / 0.05);
+  --shadow-card-hover: 0 6px 16px -4px rgb(20 40 20 / 0.10), 0 2px 4px rgb(20 40 20 / 0.05);
+
+  /* 레이아웃 */
+  --spacing-sidebar: 220px;
+  --spacing-sidebar-collapsed: 76px;
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    @apply bg-brand-800 font-sans text-ink antialiased;
+    font-feature-settings: "tnum" 0;
+  }
+  button {
+    cursor: pointer;
+  }
+}
+
+/* 초록 프레임 배경 */
+.app-frame {
+  background:
+    radial-gradient(1200px 600px at -10% -10%, rgb(255 255 255 / 0.12), transparent 60%),
+    linear-gradient(160deg, #57b85b 0%, #4caf50 45%, #3f9a43 100%);
+}
+
+/* recharts 포커스 테두리 제거 */
+.recharts-wrapper *:focus,
+.recharts-surface:focus {
+  outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

@@ -1,6 +1,6 @@
 # web-project
 
-Spring Boot 3.5 (Java 21) + Vue 3 (Vite, Pinia) 웹 프로젝트.
+Spring Boot 3.5 (Java 21) + React 19 (Vite, TypeScript, Tailwind CSS v4) 웹 프로젝트.
 배포 시 프론트 빌드 결과가 Spring jar 에 포함되어 컨테이너 하나로 서빙된다.
 
 ## 폴더 구조
@@ -21,19 +21,24 @@ web-project/
 ├── backend/                    # Spring Boot (Maven)
 │   └── src/main/java/com/example/webapp/
 │       ├── controller/         # REST API (/api/**)
-│       └── config/             # SpaWebConfig (Vue 새로고침 대응)
-└── frontend/                   # Vue 3 + Vite
+│       └── config/             # SpaWebConfig (SPA 새로고침 대응)
+└── frontend/                   # React 19 + Vite + TypeScript + Tailwind v4
     ├── assets/
     │   ├── 화면명세서.html
     │   ├── 스타일가이드.html
     │   └── design-system/{css,js,img,fonts}   # @assets/ 로 import
     └── src/
-        ├── api/                # API 클라이언트 (client.js, health.js)
-        ├── components/common/  # 공용 컴포넌트
-        ├── views/{base,auth,admin,manager}/   # 역할별 화면
-        ├── router/             # index.js, guards.js, routes/
-        ├── stores/             # Pinia (AuthStore, LogStore)
-        └── utils/              # LogUtils, RoleUtils
+        ├── app/                # App(스플래시), router, navigation(사이드바 메뉴 정의)
+        ├── components/
+        │   ├── layout/         # AppShell, Sidebar, Topbar
+        │   ├── ui/             # Card, StatusPill, Badge, ProgressBar, Toggle, Avatar
+        │   └── dashboard/      # 대시보드 카드 컴포넌트 (recharts)
+        ├── pages/              # DashboardPage, PlaceholderPage
+        ├── api/                # client.ts(fetch 래퍼), dashboard.ts(현재 mock 반환)
+        ├── mocks/              # mock 데이터
+        ├── types/              # 도메인 타입
+        ├── lib/                # motion variants, 유틸
+        └── index.css           # @theme 디자인 토큰 (색/반경/그림자)
 ```
 
 ## 브랜치 전략
