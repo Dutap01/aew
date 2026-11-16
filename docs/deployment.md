@@ -19,7 +19,7 @@ GitLab (release 머지)
    → `mvn package -DskipTests` 로 `webapp.jar` 생성
 2. **runtime 단계** (ubuntu:26.04 + JRE 21): `java -jar /app/app.jar`, 포트 8080
 
-프론트와 백엔드가 jar 하나에서 서빙된다. `/api/**` 는 Spring 컨트롤러가, 그 외 경로는 Vue 화면(index.html)이 처리한다 (`SpaWebConfig`).
+프론트와 백엔드가 jar 하나에서 서빙된다. `/api/**` 는 Spring 컨트롤러가, 그 외 경로는 React 화면(index.html)이 처리한다 (`SpaWebConfig`).
 
 ## 사전 준비 (배포 서버, 최초 1회)
 
