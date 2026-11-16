@@ -6,6 +6,6 @@ cd "$(dirname "$0")"
 TAG=${1:-latest}
 IMAGE=web-project:"$TAG"
 
-docker build -f Dockerfile.release -t "$IMAGE" .
+docker build --target runtime -t "$IMAGE" .
 APP_IMAGE="$IMAGE" docker compose up -d
 docker compose ps

@@ -19,7 +19,7 @@ RUN apt-get update \
 ENV LANG=ko_KR.UTF-8 LC_ALL=ko_KR.UTF-8
 WORKDIR /kimlongdaechicken
 
-# ---- 배포 빌드 (기존 Dockerfile.release) ----
+# ---- 배포 빌드 ----
 FROM base AS build
 WORKDIR /build
 COPY frontend/ frontend/

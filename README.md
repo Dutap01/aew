@@ -6,8 +6,7 @@ Spring Boot 3.5 (Java 21) + React 19 (Vite, TypeScript, Tailwind CSS v4) 웹 프
 ## 폴더 구조
 ```
 web-project/
-├── Dockerfile                  # 개발용 이미지 (ubuntu:26.04, JDK 21, Maven, Node)
-├── Dockerfile.release          # 배포용 이미지 (React 빌드 → Spring static → jar)
+├── Dockerfile                  # 멀티 스테이지: dev(개발 컨테이너) / runtime(배포: React 빌드 → Spring static → jar)
 ├── docker-compose.yml          # [배포] app 서비스
 ├── run_docker.sh               # [개발] 개발 컨테이너 실행/진입
 ├── build_docker.sh             # [배포] 이미지 빌드 + compose 실행

@@ -5,15 +5,15 @@
 ```
 GitLab (release 머지)
    └─ GitLab Runner (shell executor, 태그: deploy) ── 배포 서버에서 실행
-        ├─ build  : docker build -f Dockerfile.release -t web-project:<커밋SHA> .
+        ├─ build  : docker build --target runtime -t web-project:<커밋SHA> .
         └─ deploy : ./build_docker.sh <커밋SHA>
                       ├─ docker build (캐시 사용)
                       └─ APP_IMAGE=web-project:<커밋SHA> docker compose up -d
 ```
 
-`Dockerfile.release` 는 멀티 스테이지 빌드다.
+배포 이미지는 `Dockerfile` 의 `runtime` 타깃이다 (`dev` 타깃은 개발 컨테이너용).
 
-1. **build 단계** (ubuntu:26.04): JDK 21·Maven 설치, `setting-script/install_vue.sh` 로 Node 설치
+1. **build 단계** (`base` 스테이지 = ubuntu:26.04 + JDK 21·Maven + `setting-script/install_vue.sh` 로 Node 설치)
    → `frontend` 에서 `npm ci && npm run build`
    → `frontend/dist/*` 를 `backend/src/main/resources/static/` 으로 복사
    → `mvn package -DskipTests` 로 `webapp.jar` 생성

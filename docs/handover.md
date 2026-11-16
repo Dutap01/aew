@@ -56,8 +56,7 @@ cd frontend && npm install && npm run dev
 ### 루트
 | 경로 | 역할 |
 |---|---|
-| `Dockerfile` | 멀티 스테이지: `--target dev` 개발용 이미지, `--target runtime` 배포용 이미지 |
-| `Dockerfile.release` | 배포용 이미지 (프론트+백엔드 → jar 하나). GitLab CI 가 사용 |
+| `Dockerfile` | 멀티 스테이지: `--target dev` 개발 컨테이너, `--target runtime` 배포 이미지 (프론트+백엔드 → jar 하나, GitLab CI 가 사용) |
 | `setting-script/` | 컨테이너 환경 설치 스크립트 |
 | `run_docker.sh` / `build_docker.sh` | 개발 컨테이너 실행 / 배포 |
 | `docs/` | 운영 문서 (이 문서, 배포 가이드, 브랜치 전략) |
@@ -107,5 +106,4 @@ export const getTrend = () => api.get<TrendSeries>('/dashboard/trend')
 - **프론트 테스트 미구성**: 빌드/타입 검사와 브라우저 수동 확인만 했다. Vitest + Testing Library 도입 권장.
 - **도메인/HTTPS 미연결**: `docs/deployment.md` 의 "도메인 연결" 참고.
 - **개발 컨테이너는 root 로 실행**: 컨테이너 안에서 만든 `node_modules`, `target` 이 호스트에서 root 소유가 될 수 있다. 권한 문제 시 `sudo chown -R $USER .` 로 정리.
-- **배포 Dockerfile 중복**: `Dockerfile` 의 `runtime` 스테이지와 `Dockerfile.release` 가 같은 일을 한다. 하나로 합치려면 CI/`build_docker.sh` 를 `docker build --target runtime` 으로 바꾸고 `Dockerfile.release` 를 지운다.
 - **CI 이미지 이중 빌드**: `build` 잡과 `deploy` 잡(`build_docker.sh`) 모두 `docker build` 를 실행한다. 같은 러너면 캐시로 빠르게 끝나지만, 필요하면 `deploy` 잡이 빌드된 이미지만 실행하도록 정리할 수 있다.

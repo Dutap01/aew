@@ -6,7 +6,7 @@ stages:
 build:
   stage: build
   script:
-    - docker build -f Dockerfile.release -t web-project:$CI_COMMIT_SHORT_SHA .
+    - docker build --target runtime -t web-project:$CI_COMMIT_SHORT_SHA .
   rules:
     - if: '$CI_COMMIT_BRANCH == "release"'
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
