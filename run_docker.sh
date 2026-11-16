@@ -8,12 +8,12 @@ CONTAINER=web-project-dev
 
 if [[ "${1:-}" == "--rebuild" ]]; then
 	docker rm -f "$CONTAINER" 2>/dev/null || true
-	docker build -f Dockerfile -t "IMAGE" .
+	docker build --target dev -f Dockerfile -t "$IMAGE" .
 	docker image prune -f
 fi
 
 if ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
-  docker build -f Dockerfile -t "$IMAGE" .
+  docker build --target dev -f Dockerfile -t "$IMAGE" .
 fi
 
 if docker ps -a --format '{{.Names}}' | grep -qx "$CONTAINER"; then
