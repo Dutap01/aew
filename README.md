@@ -1,18 +1,20 @@
-# web-project
+# aew (학원 LMS)
 
 Spring Boot 3.5 (Java 21) + React 19 (Vite, TypeScript, Tailwind CSS v4) 웹 프로젝트.
 배포 시 프론트 빌드 결과가 Spring jar 에 포함되어 컨테이너 하나로 서빙된다.
 
 ## 폴더 구조
 ```
-web-project/
+aew/
 ├── Dockerfile                  # 멀티 스테이지: dev(개발 컨테이너) / runtime(배포: React 빌드 → Spring static → jar)
-├── docker-compose.yml          # [배포] app 서비스
+├── docker-compose.yml          # [배포] app + PostgreSQL 16 (프로젝트 이름 aew)
 ├── run_docker.sh               # [개발] 개발 컨테이너 실행/진입
 ├── build_docker.sh             # [배포] 이미지 빌드 + compose 실행
 ├── .gitlab-ci.yml              # release 머지 시 GitLab Runner 로 배포
 ├── setting-script/
-│   └── install_vue.sh          # 컨테이너 Node/npm 설치
+│   ├── install_node.sh         # 컨테이너 Node/npm 설치
+│   ├── pg_local.sh             # 개발 컨테이너 로컬 DB (start/stop/reset)
+│   └── backup_db.sh            # [운영] DB 백업 (pg_dump, 14일 보관)
 ├── docs/
 │   ├── deployment.md           # 배포 가이드 (러너, 롤백, 도메인)
 │   ├── branch-strategy.md      # 브랜치 전략, 커밋 메시지 규칙
@@ -58,7 +60,8 @@ cd frontend && npm install && npm run dev     # 5173 (/api → 8080 프록시)
 
 ## 배포
 ```bash
-./build_docker.sh [tag]
+cp .env.example .env && vi .env               # DB_PASSWORD, OWNER_PASSWORD 채우기
+./build_docker.sh [tag]                       # 이미지 빌드 + app·db 실행 (헬스체크 통과까지 대기)
 curl localhost:8080/api/health                # {"status":"UP"}
 ```
 자세한 내용: [docs/deployment.md](docs/deployment.md) · 인수인계: [docs/handover.md](docs/handover.md)

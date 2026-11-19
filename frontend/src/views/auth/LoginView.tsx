@@ -2,7 +2,7 @@
 import { Eye, EyeOff, LoaderCircle, LogIn } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
 import { type FormEvent, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router'
+import { Link, useNavigate, useSearchParams } from 'react-router'
 import { ApiError } from '@/api/client'
 import { useAuthStore } from '@/stores/authStore'
 import { cardEnter } from '@/utils/motion'
@@ -141,6 +141,9 @@ export function LoginView() {
         </form>
 
         <p className="mt-5 text-center text-[11px] text-muted">비밀번호를 잊었으면 학원에 문의하세요.</p>
+        <p className="mt-2 text-center">
+          <Link to="/" className="text-[11px] font-semibold text-brand-700 hover:underline">← 처음 화면으로</Link>
+        </p>
 
         {import.meta.env.DEV && <DevAccounts onPick={(id) => { setLoginId(id); setPassword(DEV_PASSWORD) }} />}
       </motion.div>

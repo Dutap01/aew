@@ -28,12 +28,6 @@ export function RequireStudent() {
   return <RequireAuth />
 }
 
-/** "/" 접속 시 역할별 첫 화면으로 */
-export function HomeRedirect() {
-  const user = useAuthStore((s) => s.user)
-  return <Navigate to={user ? homePathOf(user.role) : '/login'} replace />
-}
-
 /** 이미 로그인했으면 로그인 화면 대신 첫 화면으로 */
 export function RedirectIfAuthenticated({ children }: { children: ReactNode }) {
   const user = useAuthStore((s) => s.user)

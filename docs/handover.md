@@ -103,6 +103,23 @@ cd frontend && npm install && npm run dev
 - 백엔드 DTO 를 바꾼 뒤 컨테이너에서 `cd frontend && npm run gen:api` → `src/api/schema.d.ts` 재생성 (git 에 올린다)
 - 프런트 타입은 `types/*.ts` 에서 `components['schemas'][...]` 로 가져다 쓴다. 값이 없을 수 있는 필드는 DTO 에 `@Schema(types = {"string", "null"})`
 
+### API 오류 응답
+- 형식: `{"message": "...", "fieldErrors": {"필드": "이유"}}` (`controller/ApiExceptionHandler.java`)
+- 400 입력 오류(Bean Validation), 404 없음(`NotFoundException`), 409 지금 상태에서 불가(`ConflictException`)
+- 프런트는 `api/errors.ts` 의 `errorMessage()`, `fieldErrors()` 로 보여준다
+- 상태를 바꾸는 작업은 `AuditService.record()` 로 감사 로그(`audit_logs`)를 남긴다
+
+### 메인·강의 소개 (공개)
+- `/` 메인 (임시): 터미널 느낌 화면, 버튼 3개(상담 신청·레벨테스트 신청·LMS), 키보드 1·2·3. LMS 는 로그인 전이면 `/login`, 로그인 상태면 역할별 첫 화면. 강의 소개(`/curriculum`)는 메인에서 링크하지 않음
+- `/curriculum`, `/curriculum/{m1|m2|m3}`: 과정 소개. 반·요일·시간·회차 커리큘럼은 DB(`GET /api/public/courses`, 운영 중인 반만, 강사·학생 정보 없음)
+- 학원 이름·소개 문구·연락처·과정 설명은 `frontend/src/config/academy.ts` 에서 바꾼다
+
+### 접수 (2주차 2-1)
+- 학부모용 신청서: `/apply/consult`, `/apply/level-test` (로그인 없음, `POST /api/public/inquiries`)
+- 운영자: `/admin/inquiries` 목록(상태 탭·종류·검색), `/admin/inquiries/{id}` 상세(상태 처리, 상담 기록, 학생 등록·기존 학생 연결)
+- 상태 변경 규칙은 `InquiryService.TRANSITIONS` 한 곳에 있다
+- 화면의 시각은 기기 설정과 상관없이 한국 시각(`utils/format.ts` `ACADEMY_TIME_ZONE`)으로 표시한다
+
 ### mock → 실제 API 로 교체
 `frontend/src/api/dashboard.ts` 의 각 함수 옆 주석에 대응하는 API 경로가 적혀 있다. 함수 본문만 바꾸면 페이지/컴포넌트는 수정하지 않아도 된다.
 ```ts

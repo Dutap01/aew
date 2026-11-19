@@ -2,6 +2,8 @@
 import type { RouteObject } from 'react-router'
 import { RequireAuth } from '@/router/guards'
 import { DashboardView } from '@/views/admin/DashboardView'
+import { InquiriesView } from '@/views/admin/InquiriesView'
+import { InquiryDetailView } from '@/views/admin/InquiryDetailView'
 import { StudentsView } from '@/views/admin/StudentsView'
 import { PlaceholderView } from '@/views/base/PlaceholderView'
 
@@ -11,8 +13,8 @@ export const adminRoutes: RouteObject[] = [
     element: <RequireAuth roles={['owner', 'counselor']} />,
     children: [
       { index: true, element: <DashboardView /> },
-      { path: 'inquiries', element: <PlaceholderView title="상담·테스트 접수" plan="2주차" /> },
-      { path: 'inquiries/:id', element: <PlaceholderView title="접수 상세" plan="2주차" /> },
+      { path: 'inquiries', element: <InquiriesView /> },
+      { path: 'inquiries/:id', element: <InquiryDetailView /> },
       // 상담·레벨테스트 일정 달력 (월간·주간)
       { path: 'consult-calendar', element: <PlaceholderView title="상담 달력" plan="2주차" /> },
       // 학생·강사 검색 → 개인 주간 시간표 (?student=ID / ?teacher=ID)

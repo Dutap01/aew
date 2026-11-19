@@ -1,12 +1,17 @@
-# release 브랜치에 머지되면 GitLab Runner(shell executor)가 배포
+# release 브랜치에 머지되면 GitLab Runner(shell executor, 배포 서버)가 빌드·배포
+# 서버 준비: docs/deployment.md (환경변수 파일 /etc/aew/aew.env, Runner 태그 deploy)
 stages:
   - build
   - deploy
 
+variables:
+  ENV_FILE: /etc/aew/aew.env   # 서버 고정 경로 (Runner 작업 폴더는 매번 정리됨)
+
+# MR 을 열었을 때도 배포 이미지가 빌드되는지 먼저 확인 (jOOQ 코드 생성·프런트 타입 검사 포함)
 build:
   stage: build
   script:
-    - docker build --target runtime -t web-project:$CI_COMMIT_SHORT_SHA .
+    - docker build --target runtime -t aew:$CI_COMMIT_SHORT_SHA .
   rules:
     - if: '$CI_COMMIT_BRANCH == "release"'
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
@@ -16,7 +21,7 @@ build:
 deploy:
   stage: deploy
   script:
-    - ./build_docker.sh $CI_COMMIT_SHORT_SHA
+    - ./build_docker.sh $CI_COMMIT_SHORT_SHA   # 같은 러너라 build 단계 캐시로 바로 끝남, 헬스체크 통과까지 대기
   rules:
     - if: '$CI_COMMIT_BRANCH == "release"'
   environment:

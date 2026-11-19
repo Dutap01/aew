@@ -2,12 +2,16 @@ package com.example.webapp.seed;
 
 import static com.example.webapp.jooq.Tables.CLASSES;
 import static com.example.webapp.jooq.Tables.CLASS_SCHEDULES;
+import static com.example.webapp.jooq.Tables.CONSULT_NOTES;
+import static com.example.webapp.jooq.Tables.CURRICULUM_ITEMS;
 import static com.example.webapp.jooq.Tables.ENROLLMENTS;
+import static com.example.webapp.jooq.Tables.INQUIRIES;
 import static com.example.webapp.jooq.Tables.PROFILES;
 import static com.example.webapp.jooq.Tables.STUDENTS;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -17,6 +21,7 @@ import java.util.Random;
 import java.util.UUID;
 
 import org.jooq.DSLContext;
+import org.jooq.JSONB;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,6 +33,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.webapp.jooq.enums.InquiryStatus;
+import com.example.webapp.jooq.enums.InquiryType;
 import com.example.webapp.jooq.enums.StudentStatus;
 import com.example.webapp.jooq.enums.UserRole;
 
@@ -37,6 +44,8 @@ import com.example.webapp.jooq.enums.UserRole;
  *   <li>계정 (비밀번호 모두 1234): owner(대표), counselor(상담실장), teacher·teacher2·teacher3(강사), S-0001(학생)</li>
  *   <li>반 6개 (중1~중3 A/B) + 요일·시간</li>
  *   <li>학생 app.seed.students 명 (기본 150). 이름이 겹치는 학생도 생기도록 성·이름 조합에서 고정 난수로 생성</li>
+ *   <li>상담·레벨테스트 접수 30건 (최근 2주, 상태 여러 가지). 접수 테이블이 비어 있을 때만</li>
+ *   <li>레벨별(M1~M3) 회차 커리큘럼 8회차. 커리큘럼이 비어 있을 때만</li>
  * </ul>
  * 다시 만들려면 개발 컨테이너에서 pg_local reset 후 서버를 재시작한다.
  */
@@ -72,9 +81,36 @@ public class DevDataSeeder implements ApplicationRunner {
             log.warn("prod 프로파일에서는 샘플 데이터를 넣지 않습니다 (app.seed.enabled 무시)");
             return;
         }
-        if (dsl.fetchCount(PROFILES) > 0) {
-            return;
+        if (dsl.fetchCount(PROFILES) == 0) {
+            seedBase();
         }
+        if (dsl.fetchCount(INQUIRIES) == 0) {
+            seedInquiries();
+        }
+        if (dsl.fetchCount(CURRICULUM_ITEMS) == 0) {
+            seedCurriculum();
+        }
+    }
+
+    private void seedCurriculum() {
+        Map<String, String[]> topics = Map.of(
+                "M1", new String[] {"be동사와 일반동사", "현재·과거 시제", "의문문과 부정문", "명사와 관사", "대명사", "형용사와 부사", "조동사 can·will", "1~7회 복습 테스트"},
+                "M2", new String[] {"현재완료", "to부정사", "동명사", "수동태", "비교급·최상급", "관계대명사", "접속사", "1~7회 복습 테스트"},
+                "M3", new String[] {"관계부사", "분사·분사구문", "가정법 과거", "간접의문문", "명사절", "강조·도치", "서술형 쓰기", "고등 대비 종합 테스트"});
+        topics.forEach((level, titles) -> {
+            for (int i = 0; i < titles.length; i++) {
+                dsl.insertInto(CURRICULUM_ITEMS)
+                        .set(CURRICULUM_ITEMS.LEVEL, level)
+                        .set(CURRICULUM_ITEMS.SEQ, i + 1)
+                        .set(CURRICULUM_ITEMS.TITLE, titles[i])
+                        .set(CURRICULUM_ITEMS.DESCRIPTION, i == titles.length - 1 ? "회차 학습 내용을 점검하는 테스트" : "개념 설명 → 문제 풀이 → 오답 정리")
+                        .execute();
+            }
+        });
+        log.info("개발용 샘플 커리큘럼 생성 (M1~M3, 각 8회차)");
+    }
+
+    private void seedBase() {
         String hash = encoder.encode(DEV_PASSWORD);
 
         profile("owner", "정하늘", UserRole.owner, hash);
@@ -141,6 +177,50 @@ public class DevDataSeeder implements ApplicationRunner {
             }
         }
         log.info("개발용 샘플 데이터 생성: 계정 6개, 반 6개, 학생 {}명 (비밀번호 {})", studentCount, DEV_PASSWORD);
+    }
+
+    private void seedInquiries() {
+        UUID counselorId = dsl.select(PROFILES.ID).from(PROFILES).where(PROFILES.LOGIN_ID.eq("counselor")).fetchOne(PROFILES.ID);
+        Random random = new Random(1119L);
+        InquiryStatus[] statuses = {InquiryStatus.received, InquiryStatus.received, InquiryStatus.received,
+                InquiryStatus.contacted, InquiryStatus.contacted, InquiryStatus.scheduled, InquiryStatus.completed,
+                InquiryStatus.canceled};
+        String[] times = {"14:00", "15:30", "16:00", "17:00", "18:30", "19:00"};
+        String[] messages = {null, "중2 문법이 약해서 상담 받고 싶어요.", "레벨테스트 후 반 배정 가능할까요?",
+                "주말 상담 가능한지 궁금합니다.", null, "형제가 같이 다닐 수 있나요?"};
+        OffsetDateTime now = OffsetDateTime.now();
+        for (int i = 0; i < 30; i++) {
+            String student = SURNAMES[random.nextInt(SURNAMES.length)] + GIVEN[random.nextInt(GIVEN.length)];
+            OffsetDateTime created = now.minusHours(random.nextInt(14 * 24)).withMinute(random.nextInt(60));
+            LocalDate base = created.toLocalDate().plusDays(2);
+            String slots = "[" + String.format("{\"date\":\"%s\",\"time\":\"%s\"}", base, times[random.nextInt(times.length)])
+                    + (random.nextBoolean() ? String.format(",{\"date\":\"%s\",\"time\":\"%s\"}", base.plusDays(1), times[random.nextInt(times.length)]) : "")
+                    + "]";
+            InquiryStatus status = statuses[random.nextInt(statuses.length)];
+            UUID id = dsl.insertInto(INQUIRIES)
+                    .set(INQUIRIES.TYPE, random.nextInt(3) == 0 ? InquiryType.consult : InquiryType.level_test)
+                    .set(INQUIRIES.STATUS, status)
+                    .set(INQUIRIES.APPLICANT_NAME, student.charAt(0) + "보호자")
+                    .set(INQUIRIES.APPLICANT_PHONE, String.format("010-%04d-%04d", 1000 + random.nextInt(9000), random.nextInt(10000)))
+                    .set(INQUIRIES.STUDENT_NAME, student)
+                    .set(INQUIRIES.SCHOOL, SCHOOLS[random.nextInt(SCHOOLS.length)])
+                    .set(INQUIRIES.GRADE, "중" + (1 + random.nextInt(3)))
+                    .set(INQUIRIES.PREFERRED_SLOTS, JSONB.valueOf(slots))
+                    .set(INQUIRIES.MESSAGE, messages[random.nextInt(messages.length)])
+                    .set(INQUIRIES.PRIVACY_AGREED, true)
+                    .set(INQUIRIES.CREATED_AT, created)
+                    .set(INQUIRIES.UPDATED_AT, created)
+                    .returning(INQUIRIES.ID).fetchOne(INQUIRIES.ID);
+            if (status != InquiryStatus.received && counselorId != null) {
+                dsl.insertInto(CONSULT_NOTES)
+                        .set(CONSULT_NOTES.INQUIRY_ID, id)
+                        .set(CONSULT_NOTES.AUTHOR_ID, counselorId)
+                        .set(CONSULT_NOTES.CONTENT, "학부모 통화. 희망 일정 확인함.")
+                        .set(CONSULT_NOTES.CREATED_AT, created.plusHours(3))
+                        .execute();
+            }
+        }
+        log.info("개발용 샘플 접수 30건 생성");
     }
 
     /** 재원 75%, 상담중 8%, 테스트예정 7%, 휴원 5%, 퇴원 5% */

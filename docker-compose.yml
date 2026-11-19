@@ -1,12 +1,56 @@
-# [배포용] build_docker.sh 에서 사용
+# [배포용] build_docker.sh 가 사용한다. 앱(Spring Boot + React) + DB(PostgreSQL 16)
+# 환경변수는 ENV_FILE(기본 .env, 예시는 .env.example)에서 읽는다.
+# 프로젝트 이름을 aew 로 고정해, 어느 폴더(GitLab Runner 작업 폴더 등)에서 실행해도 같은 컨테이너·볼륨을 쓴다.
+name: aew
+
 services:
-  app:
-    image: ${APP_IMAGE:-web-project:latest}
-    container_name: web-project-app
+  db:
+    image: postgres:16
+    container_name: aew-db
     restart: unless-stopped
+    environment:
+      POSTGRES_DB: aew
+      POSTGRES_USER: aew
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD 를 .env 에 설정하세요}
+      TZ: Asia/Seoul
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aew -d aew"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    # DB 포트는 밖으로 열지 않는다 (앱 컨테이너에서만 db:5432 로 접속)
+
+  app:
+    image: ${APP_IMAGE:-aew:latest}
+    container_name: aew-app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
     ports:
       - "${APP_PORT:-8080}:8080"
     environment:
-      - SPRING_PROFILES_ACTIVE=prod
-      - TZ=Asia/Seoul
-  # TODO: 도메인 연결 시 리버스 프록시(Caddy/Nginx) 서비스 추가
+      SPRING_PROFILES_ACTIVE: prod
+      TZ: Asia/Seoul
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/aew
+      SPRING_DATASOURCE_USERNAME: aew
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      # 첫 실행 때만 쓰는 대표 계정 (대표 계정이 생긴 뒤에는 비워도 된다)
+      OWNER_LOGIN_ID: ${OWNER_LOGIN_ID:-}
+      OWNER_PASSWORD: ${OWNER_PASSWORD:-}
+      OWNER_NAME: ${OWNER_NAME:-대표}
+      # HTTPS(도메인) 연결 후 true
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-false}
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8080/api/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      start_period: 20s
+  # TODO: 도메인 연결 시 리버스 프록시(Caddy) 서비스 추가 (docs/deployment.md)
+
+volumes:
+  db-data:
+    name: aew-db-data   # 이름 고정: 컨테이너를 지우고 다시 만들어도 데이터 유지
