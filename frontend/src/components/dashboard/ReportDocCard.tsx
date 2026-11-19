@@ -3,8 +3,8 @@ import { motion, useReducedMotion } from 'motion/react'
 import { Link } from 'react-router'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { StatusPill } from '@/components/ui/StatusPill'
-import { cardEnter } from '@/lib/motion'
-import { cn } from '@/lib/cn'
+import { cardEnter } from '@/utils/motion'
+import { cn } from '@/utils/cn'
 import type { DiagnosisReport, ReportStatus } from '@/types/dashboard'
 
 const BAR_COLOR: Record<ReportStatus, string> = {

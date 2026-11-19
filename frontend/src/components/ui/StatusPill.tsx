@@ -1,5 +1,5 @@
 import type { ReportStatus } from '@/types/dashboard'
-import { cn } from '@/lib/cn'
+import { cn } from '@/utils/cn'
 
 const STATUS: Record<ReportStatus, { label: string; className: string }> = {
   pending: { label: '대기', className: 'bg-wait' },

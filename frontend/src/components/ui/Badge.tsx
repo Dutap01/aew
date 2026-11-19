@@ -1,4 +1,4 @@
-import { cn } from '@/lib/cn'
+import { cn } from '@/utils/cn'
 
 /** 빨간 숫자 배지 */
 export function CountBadge({ count, className }: { count: number; className?: string }) {

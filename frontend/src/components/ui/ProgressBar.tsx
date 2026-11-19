@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from 'motion/react'
-import { cn } from '@/lib/cn'
+import { cn } from '@/utils/cn'
 
 interface ProgressBarProps {
   value: number // 0~100

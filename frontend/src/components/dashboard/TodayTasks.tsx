@@ -2,7 +2,7 @@ import { ArrowRight, Check } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { Card, CardHeader } from '@/components/ui/Card'
-import { cn } from '@/lib/cn'
+import { cn } from '@/utils/cn'
 import type { TaskDue, TodayTask } from '@/types/dashboard'
 
 const DUE_LABEL: Record<TaskDue, string> = { today: '오늘', tomorrow: '내일', week: '이번 주' }

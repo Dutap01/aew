@@ -13,10 +13,8 @@ import type {
 
 export const shellSummary: ShellSummary = {
   academyName: '한빛 중등영어학원',
-  badges: { consultations: 3, levelTests: 2 },
+  badges: { inquiries: 3, levelTests: 2, reports: 4, feedbacks: 6, messages: 2 }, // 메뉴 key(navigation.ts badgeKey) → 처리 대기 건수
   monthlyHomeworkRate: 68,
-  unreadNotifications: 5,
-  admin: { name: '정하늘', role: '원장 · 관리자' },
 }
 
 export const trend: TrendSeries = {

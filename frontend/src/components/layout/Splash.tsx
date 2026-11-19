@@ -12,7 +12,7 @@ export function Splash() {
       className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-5 bg-brand-900"
     >
       <span className="size-11 animate-spin rounded-full border-[3px] border-white/20 border-t-white motion-reduce:animate-none" />
-      <span className="text-xs font-semibold tracking-[0.2em] text-white/70">LMS ADMIN</span>
+      <span className="text-xs font-semibold tracking-[0.2em] text-white/70">LMS</span>
     </motion.div>
   )
 }

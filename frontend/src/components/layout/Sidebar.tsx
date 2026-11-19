@@ -1,11 +1,13 @@
-import { Bell, ChevronsLeft, ChevronsRight, Settings } from 'lucide-react'
+import { ChevronsLeft, ChevronsRight, LogOut } from 'lucide-react'
 import { motion } from 'motion/react'
-import { NavLink } from 'react-router'
-import { NAV_SECTIONS, NOTIFICATIONS_PATH, type NavItem } from '@/app/navigation'
+import { NavLink, useNavigate } from 'react-router'
+import { navSectionsFor, type NavItem } from '@/router/navigation'
 import { Avatar } from '@/components/ui/Avatar'
 import { CountBadge, TagBadge } from '@/components/ui/Badge'
 import { ProgressBar } from '@/components/ui/ProgressBar'
-import { cn } from '@/lib/cn'
+import { useAuthStore } from '@/stores/authStore'
+import { cn } from '@/utils/cn'
+import { ROLE_LABEL } from '@/utils/role'
 import type { ShellSummary } from '@/types/dashboard'
 
 interface SidebarProps {
@@ -15,6 +17,17 @@ interface SidebarProps {
 }
 
 export function Sidebar({ collapsed, onToggle, summary }: SidebarProps) {
+  const user = useAuthStore((s) => s.user)
+  const logout = useAuthStore((s) => s.logout)
+  const navigate = useNavigate()
+  const sections = navSectionsFor(user?.role)
+  const isAdmin = user?.role === 'owner' || user?.role === 'counselor'
+
+  async function onLogout() {
+    await logout()
+    navigate('/login', { replace: true })
+  }
+
   return (
     <aside
       className={cn(
@@ -31,7 +44,7 @@ export function Sidebar({ collapsed, onToggle, summary }: SidebarProps) {
         </span>
         {!collapsed && (
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[15px] font-extrabold leading-tight">LMS Admin</p>
+            <p className="truncate text-[15px] font-extrabold leading-tight">LMS</p>
             <p className="truncate text-[11px] text-white/70">{summary?.academyName ?? ' '}</p>
           </div>
         )}
@@ -48,7 +61,7 @@ export function Sidebar({ collapsed, onToggle, summary }: SidebarProps) {
 
       {/* 메뉴 */}
       <nav aria-label="주 메뉴" className="-mx-1 flex-1 space-y-5 overflow-y-auto px-1 [scrollbar-width:none]">
-        {NAV_SECTIONS.map((section) => (
+        {sections.map((section) => (
           <div key={section.title}>
             {collapsed ? (
               <div className="mx-auto mb-2 h-px w-6 bg-white/25" aria-hidden />
@@ -68,7 +81,7 @@ export function Sidebar({ collapsed, onToggle, summary }: SidebarProps) {
 
       {/* 하단 */}
       <div className="mt-4 space-y-1">
-        {!collapsed && summary && (
+        {!collapsed && isAdmin && summary && (
           <div className="mb-3 rounded-2xl bg-white/12 p-3.5 ring-1 ring-white/15 backdrop-blur-sm">
             <p className="text-[11px] text-white/75">이번 달 숙제 제출률</p>
             <p className="mt-0.5 text-xl font-extrabold tabular-nums">{summary.monthlyHomeworkRate}%</p>
@@ -81,21 +94,23 @@ export function Sidebar({ collapsed, onToggle, summary }: SidebarProps) {
             />
           </div>
         )}
-        <SidebarLink
-          item={{ key: 'notifications', label: '알림', path: NOTIFICATIONS_PATH, icon: Bell }}
-          collapsed={collapsed}
-          badge={summary?.unreadNotifications}
-        />
-        <SidebarLink item={{ key: 'settings-bottom', label: '설정', path: '/settings', icon: Settings }} collapsed={collapsed} quiet />
-
-        <div className={cn('mt-3 flex items-center gap-2.5 border-t border-white/15 pt-4', collapsed ? 'justify-center' : 'px-1')}>
-          <Avatar name={summary?.admin.name ?? '관리자'} size={34} colorClassName="bg-white text-brand-800" />
+        <div className={cn('mt-3 flex items-center gap-2.5 border-t border-white/15 pt-4', collapsed ? 'flex-col' : 'px-1')}>
+          <Avatar name={user?.name ?? ' '} size={34} colorClassName="bg-white text-brand-800" />
           {!collapsed && (
-            <div className="min-w-0">
-              <p className="truncate text-[13px] font-bold">{summary?.admin.name ?? ' '}</p>
-              <p className="truncate text-[11px] text-white/65">{summary?.admin.role ?? ' '}</p>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[13px] font-bold">{user?.name}</p>
+              <p className="truncate text-[11px] text-white/65">{user ? ROLE_LABEL[user.role] : ''}</p>
             </div>
           )}
+          <button
+            type="button"
+            onClick={onLogout}
+            title="로그아웃"
+            aria-label="로그아웃"
+            className="flex size-8 shrink-0 items-center justify-center rounded-full text-white/80 transition-colors hover:bg-white/15 hover:text-white focus-visible:outline-2 focus-visible:outline-white"
+          >
+            <LogOut className="size-4" />
+          </button>
         </div>
       </div>
     </aside>
@@ -115,7 +130,7 @@ function SidebarLink({ item, collapsed, badge, quiet }: SidebarLinkProps) {
   return (
     <NavLink
       to={item.path}
-      end={item.path === '/'}
+      end={item.path === '/admin'}
       title={collapsed ? item.label : undefined}
       className={({ isActive }) =>
         cn(

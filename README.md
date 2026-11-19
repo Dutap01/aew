@@ -27,16 +27,18 @@ web-project/
     │   ├── 스타일가이드.html
     │   └── design-system/{css,js,img,fonts}   # @assets/ 로 import
     └── src/
-        ├── app/                # App(스플래시), router, navigation(사이드바 메뉴 정의)
+        ├── App.tsx             # 스플래시, 로그인 상태 확인, TanStack Query
+        ├── router/             # index(라우트), guards(로그인·역할), navigation(역할별 메뉴), routes/
+        ├── stores/             # Zustand (authStore)
         ├── components/
-        │   ├── layout/         # AppShell, Sidebar, Topbar
+        │   ├── layout/         # AppShell, Sidebar, Topbar, PublicLayout, Splash
         │   ├── ui/             # Card, StatusPill, Badge, ProgressBar, Toggle, Avatar
         │   └── dashboard/      # 대시보드 카드 컴포넌트 (recharts)
-        ├── pages/              # DashboardPage, PlaceholderPage
+        ├── views/              # 역할별 화면 {base,auth,public,admin,teacher,student,report}
         ├── api/                # client.ts(fetch 래퍼), dashboard.ts(현재 mock 반환)
         ├── mocks/              # mock 데이터
         ├── types/              # 도메인 타입
-        ├── lib/                # motion variants, 유틸
+        ├── utils/              # role(역할 유틸), motion variants, cn, format
         └── index.css           # @theme 디자인 토큰 (색/반경/그림자)
 ```
 

@@ -97,6 +97,4 @@ export interface ShellSummary {
   academyName: string
   badges: Partial<Record<string, number>> // 메뉴 key → 미처리 건수
   monthlyHomeworkRate: number
-  unreadNotifications: number
-  admin: { name: string; role: string }
 }

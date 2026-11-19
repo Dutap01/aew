@@ -2,7 +2,7 @@ import { ArrowDownWideNarrow } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Card, CardHeader } from '@/components/ui/Card'
 import { ProgressBar } from '@/components/ui/ProgressBar'
-import { cn } from '@/lib/cn'
+import { cn } from '@/utils/cn'
 import type { ClassRow } from '@/types/dashboard'
 
 type SortKey = 'homeworkRate' | 'averageScore' | 'students'

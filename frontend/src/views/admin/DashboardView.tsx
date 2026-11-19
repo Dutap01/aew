@@ -15,7 +15,7 @@ import type { DashboardData } from '@/types/dashboard'
 const GRID = 'grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,0.95fr)]'
 const COLUMN = 'flex min-w-0 flex-col gap-4'
 
-export function DashboardPage() {
+export function DashboardView() {
   const [data, setData] = useState<DashboardData | null>(null)
   const [error, setError] = useState<string | null>(null)
 

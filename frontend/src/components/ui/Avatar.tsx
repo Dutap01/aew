@@ -1,4 +1,4 @@
-import { cn } from '@/lib/cn'
+import { cn } from '@/utils/cn'
 
 const PALETTE = ['bg-brand', 'bg-grape', 'bg-navy', 'bg-wait', 'bg-brand-700', 'bg-sky-600']
 

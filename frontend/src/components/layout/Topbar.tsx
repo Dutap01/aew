@@ -1,6 +1,6 @@
 import { Search } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { formatToday } from '@/lib/format'
+import { formatToday } from '@/utils/format'
 
 interface TopbarProps {
   title: string

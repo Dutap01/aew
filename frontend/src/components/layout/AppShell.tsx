@@ -1,9 +1,10 @@
+import { useQuery } from '@tanstack/react-query'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useEffect, useState } from 'react'
 import { useLocation, useOutlet } from 'react-router'
 import { getShellSummary } from '@/api/dashboard'
-import { pageTransition } from '@/lib/motion'
-import type { ShellSummary } from '@/types/dashboard'
+import { useAuthStore } from '@/stores/authStore'
+import { pageTransition } from '@/utils/motion'
 import { Sidebar } from './Sidebar'
 
 const COLLAPSE_QUERY = '(max-width: 1023px)'
@@ -12,16 +13,15 @@ export function AppShell() {
   const location = useLocation()
   const outlet = useOutlet()
   const reduced = useReducedMotion()
-  const [summary, setSummary] = useState<ShellSummary | null>(null)
+  const role = useAuthStore((s) => s.user?.role)
   const [collapsed, setCollapsed] = useState(() => window.matchMedia(COLLAPSE_QUERY).matches)
 
-  useEffect(() => {
-    let alive = true
-    getShellSummary().then((s) => alive && setSummary(s))
-    return () => {
-      alive = false
-    }
-  }, [])
+  // 메뉴 배지·학원 이름 (학생 화면에는 필요 없음)
+  const { data: summary = null } = useQuery({
+    queryKey: ['shell-summary'],
+    queryFn: getShellSummary,
+    enabled: role !== undefined && role !== 'student',
+  })
 
   // 1024px 미만으로 줄어들면 자동으로 접고, 넓어지면 다시 편다
   useEffect(() => {

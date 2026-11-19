@@ -1,7 +1,7 @@
 import { motion, useReducedMotion } from 'motion/react'
 import type { ReactNode } from 'react'
-import { cardEnter } from '@/lib/motion'
-import { cn } from '@/lib/cn'
+import { cardEnter } from '@/utils/motion'
+import { cn } from '@/utils/cn'
 
 interface CardProps {
   children: ReactNode
