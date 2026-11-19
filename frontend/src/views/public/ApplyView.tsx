@@ -1,6 +1,6 @@
 // 공개 신청서 (로그인 없음, 휴대폰 우선): /apply/consult, /apply/level-test
 import { useMutation } from '@tanstack/react-query'
-import { CalendarPlus, CheckCircle2, LoaderCircle, Trash2 } from 'lucide-react'
+import { CalendarPlus, CheckCircle2, Dices, LoaderCircle, RotateCcw, Trash2 } from 'lucide-react'
 import { type FormEvent, type ReactNode, useState } from 'react'
 import { errorMessage, fieldErrors } from '@/api/errors'
 import { submitInquiry } from '@/api/inquiries'
@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/Card'
 import { INQUIRY_TYPE_LABEL } from '@/components/ui/InquiryBadges'
 import type { InquiryType, PreferredSlot } from '@/types/inquiry'
 import { cn } from '@/utils/cn'
+import { randomPerson, randomSlots } from '@/utils/devRandom'
 import { formatShortDate, toIsoDate } from '@/utils/format'
 
 const GRADES = ['초4', '초5', '초6', '중1', '중2', '중3', '고1', '고2', '고3']
@@ -52,6 +53,36 @@ export function ApplyView({ type }: { type: InquiryType }) {
   const mutation = useMutation({ mutationFn: submitInquiry })
   const errors = { ...fieldErrors(mutation.error), ...localErrors }
 
+  /** 개발용: 신청에 필요한 정보를 랜덤으로 채운다 (신청하기는 직접 누른다) */
+  function fillRandom() {
+    const p = randomPerson()
+    setApplicantName(p.applicantName)
+    setApplicantPhone(p.applicantPhone)
+    setStudentName(p.studentName)
+    setSchool(p.school)
+    setGrade(p.grade)
+    setSlots(randomSlots())
+    setMessage(p.message)
+    setPrivacyAgreed(true)
+    setLocalErrors({})
+    mutation.reset()
+  }
+
+  /** 완료 화면에서 새 신청서로 */
+  function startOver() {
+    setApplicantName('')
+    setApplicantPhone('')
+    setStudentName('')
+    setSchool('')
+    setGrade('')
+    setSlots([{ date: tomorrow(), time: '16:00' }])
+    setMessage('')
+    setPrivacyAgreed(false)
+    setLocalErrors({})
+    mutation.reset()
+    window.scrollTo({ top: 0 })
+  }
+
   function onSubmit(e: FormEvent) {
     e.preventDefault()
     const next: Record<string, string> = {}
@@ -86,6 +117,10 @@ export function ApplyView({ type }: { type: InquiryType }) {
           {studentName} 학생 · 희망 일정 {slots.map((s) => `${formatShortDate(s.date)} ${s.time}`).join(', ')}
         </p>
         <p className="text-sm text-ink">확인 후 {applicantPhone} 으로 연락드리겠습니다.</p>
+        <button type="button" onClick={startOver}
+          className="mt-3 inline-flex h-10 items-center gap-1.5 rounded-xl bg-track px-4 text-sm font-semibold text-ink hover:bg-brand-50">
+          <RotateCcw className="size-4" aria-hidden /> 새로 신청하기
+        </button>
       </Card>
     )
   }
@@ -94,6 +129,13 @@ export function ApplyView({ type }: { type: InquiryType }) {
     <>
       <h1 className="text-2xl font-extrabold tracking-tight text-ink">{INQUIRY_TYPE_LABEL[type]} 신청</h1>
       <p className="mt-1.5 mb-5 text-sm text-muted">{INTRO[type]}</p>
+
+      {import.meta.env.DEV && (
+        <button type="button" onClick={fillRandom}
+          className="mb-4 flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-grape/60 bg-grape-50 text-sm font-bold text-grape hover:bg-grape/10">
+          <Dices className="size-4" aria-hidden /> 랜덤 작성 (개발용)
+        </button>
+      )}
 
       <form onSubmit={onSubmit} noValidate className="space-y-4">
         <Card hoverLift={false} className="space-y-4">

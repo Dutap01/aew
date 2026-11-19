@@ -120,6 +120,15 @@ cd frontend && npm install && npm run dev
 - 상태 변경 규칙은 `InquiryService.TRANSITIONS` 한 곳에 있다
 - 화면의 시각은 기기 설정과 상관없이 한국 시각(`utils/format.ts` `ACADEMY_TIME_ZONE`)으로 표시한다
 
+### 상담 달력 (2주차 2-2)
+- `/admin/consult-calendar`: 월간·주간 보기(주소 `?view=&date=&counselor=`), 빈칸 클릭 → 그 날짜·시간으로 등록, 일정 클릭 → 완료·불참·취소·변경
+- 접수 상세의 "일정 잡기": 희망 일정이 미리 채워지고, 저장하면 접수가 예약확정
+- 접수 상태 자동 변경 (`AppointmentService`): 일정 등록 → 예약확정 / 일정 완료(남은 예약 없음) → 접수 완료 / 취소·불참(남은 예약 없음) → 연락완료
+- 접수 상태와 달력이 어긋나지 않게 (`InquiryService.changeStatus`): 일정 없이 예약확정 불가(화면의 "예약확정" 버튼은 일정 잡기 창을 연다), 예약이 남아 있으면 접수만 완료·연락완료로 바꿀 수 없음, 접수 취소 시 남은 예약 일정도 취소
+- 같은 담당자(대표·상담실장)의 예약 일정끼리 시간이 겹치면 저장되지 않는다 (바로 이어지는 시간은 가능). 일정은 최대 4시간
+- 일정 창은 `components/appointment/` (등록·변경 `AppointmentFormDialog`, 상세 `AppointmentDetailDialog`), 공용 모달은 `components/ui/Dialog.tsx`
+- 달력 날짜 계산은 `utils/seoulDate.ts` (한국 날짜 문자열 기준, 시각은 +09:00)
+
 ### mock → 실제 API 로 교체
 `frontend/src/api/dashboard.ts` 의 각 함수 옆 주석에 대응하는 API 경로가 적혀 있다. 함수 본문만 바꾸면 페이지/컴포넌트는 수정하지 않아도 된다.
 ```ts

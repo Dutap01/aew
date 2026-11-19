@@ -24,6 +24,7 @@ import com.example.webapp.jooq.enums.InquiryStatus;
 import com.example.webapp.jooq.enums.InquiryType;
 import com.example.webapp.jooq.enums.StudentStatus;
 import com.example.webapp.jooq.tables.records.InquiriesRecord;
+import com.example.webapp.repository.AppointmentRepository;
 import com.example.webapp.repository.InquiryRepository;
 
 /**
@@ -45,11 +46,13 @@ public class InquiryService {
 
     private final DSLContext dsl;
     private final InquiryRepository inquiries;
+    private final AppointmentRepository appointments;
     private final AuditService audit;
 
-    public InquiryService(DSLContext dsl, InquiryRepository inquiries, AuditService audit) {
+    public InquiryService(DSLContext dsl, InquiryRepository inquiries, AppointmentRepository appointments, AuditService audit) {
         this.dsl = dsl;
         this.inquiries = inquiries;
+        this.appointments = appointments;
         this.audit = audit;
     }
 
@@ -102,6 +105,20 @@ public class InquiryService {
         }
         if (!TRANSITIONS.get(from).contains(to)) {
             throw new ConflictException("'" + label(from) + "' 상태에서 '" + label(to) + "'(으)로 바꿀 수 없습니다.");
+        }
+        // 접수 상태와 상담 달력이 어긋나지 않게: 예약확정은 일정이 있어야 하고, 예약이 남아 있으면 되돌리거나 완료할 수 없다
+        boolean hasScheduled = appointments.hasScheduled(id);
+        if (to == InquiryStatus.scheduled && !hasScheduled) {
+            throw new ConflictException("예약확정은 일정을 잡으면 자동으로 바뀝니다. '일정 잡기'로 상담 달력에 일정을 넣으세요.");
+        }
+        if ((to == InquiryStatus.contacted || to == InquiryStatus.completed) && hasScheduled) {
+            throw new ConflictException(to == InquiryStatus.completed
+                    ? "예약된 일정이 있습니다. 일정을 완료 처리하면 접수도 완료됩니다."
+                    : "예약된 일정이 있습니다. 일정을 취소하면 연락완료로 돌아갑니다.");
+        }
+        if (to == InquiryStatus.canceled && hasScheduled) {
+            int canceled = appointments.cancelScheduled(id);
+            audit.record(actorId, "cancel_with_inquiry", "consult_appointments", id, null, Map.of("count", canceled));
         }
         inquiry.setStatus(to);
         inquiry.setUpdatedAt(OffsetDateTime.now());
@@ -177,7 +194,8 @@ public class InquiryService {
                 r.getStudentName(), r.getSchool(), r.getGrade(), inquiries.slots(r.getPreferredSlots()), r.getMessage(),
                 r.getCreatedAt(), r.getUpdatedAt(), TRANSITIONS.get(r.getStatus()), student,
                 student == null ? inquiries.similarStudents(r) : List.of(),
-                inquiries.notes(r.getId()));
+                inquiries.notes(r.getId()),
+                appointments.findByInquiry(r.getId()));
     }
 
     /** 01012345678 / 010-1234-5678 → 010-1234-5678 */

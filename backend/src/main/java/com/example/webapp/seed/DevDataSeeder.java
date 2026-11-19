@@ -2,6 +2,7 @@ package com.example.webapp.seed;
 
 import static com.example.webapp.jooq.Tables.CLASSES;
 import static com.example.webapp.jooq.Tables.CLASS_SCHEDULES;
+import static com.example.webapp.jooq.Tables.CONSULT_APPOINTMENTS;
 import static com.example.webapp.jooq.Tables.CONSULT_NOTES;
 import static com.example.webapp.jooq.Tables.CURRICULUM_ITEMS;
 import static com.example.webapp.jooq.Tables.ENROLLMENTS;
@@ -12,6 +13,7 @@ import static com.example.webapp.jooq.Tables.STUDENTS;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -33,6 +35,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.webapp.jooq.enums.AppointmentStatus;
 import com.example.webapp.jooq.enums.InquiryStatus;
 import com.example.webapp.jooq.enums.InquiryType;
 import com.example.webapp.jooq.enums.StudentStatus;
@@ -46,6 +49,7 @@ import com.example.webapp.jooq.enums.UserRole;
  *   <li>학생 app.seed.students 명 (기본 150). 이름이 겹치는 학생도 생기도록 성·이름 조합에서 고정 난수로 생성</li>
  *   <li>상담·레벨테스트 접수 30건 (최근 2주, 상태 여러 가지). 접수 테이블이 비어 있을 때만</li>
  *   <li>레벨별(M1~M3) 회차 커리큘럼 8회차. 커리큘럼이 비어 있을 때만</li>
+ *   <li>상담 달력: 예약확정·완료 접수의 일정 + 재원생 학부모 상담 몇 건. 일정이 비어 있을 때만</li>
  * </ul>
  * 다시 만들려면 개발 컨테이너에서 pg_local reset 후 서버를 재시작한다.
  */
@@ -90,6 +94,63 @@ public class DevDataSeeder implements ApplicationRunner {
         if (dsl.fetchCount(CURRICULUM_ITEMS) == 0) {
             seedCurriculum();
         }
+        if (dsl.fetchCount(CONSULT_APPOINTMENTS) == 0) {
+            seedAppointments();
+        }
+    }
+
+    private void seedAppointments() {
+        ZoneId seoul = ZoneId.of("Asia/Seoul");
+        UUID counselorId = dsl.select(PROFILES.ID).from(PROFILES).where(PROFILES.LOGIN_ID.eq("counselor")).fetchOne(PROFILES.ID);
+        UUID ownerId = dsl.select(PROFILES.ID).from(PROFILES).where(PROFILES.LOGIN_ID.eq("owner")).fetchOne(PROFILES.ID);
+        if (counselorId == null) return;
+        int count = 0;
+        // 접수와 연결된 일정: 희망 일정 1순위 시각 (상담 30분, 레벨테스트 60분)
+        var slotDate = org.jooq.impl.DSL.field("{0}->0->>'date'", String.class, INQUIRIES.PREFERRED_SLOTS);
+        var slotTime = org.jooq.impl.DSL.field("{0}->0->>'time'", String.class, INQUIRIES.PREFERRED_SLOTS);
+        var inquiries = dsl.select(INQUIRIES.asterisk(), slotDate, slotTime).from(INQUIRIES)
+                .where(INQUIRIES.STATUS.in(InquiryStatus.scheduled, InquiryStatus.completed))
+                .orderBy(INQUIRIES.CREATED_AT).fetch();
+        for (var row : inquiries) {
+            var q = row.into(INQUIRIES);
+            if (row.get(slotDate) == null || row.get(slotTime) == null) continue;
+            OffsetDateTime start = LocalDate.parse(row.get(slotDate)).atTime(LocalTime.parse(row.get(slotTime)))
+                    .atZone(seoul).toOffsetDateTime();
+            int minutes = q.getType() == InquiryType.level_test ? 60 : 30;
+            boolean overlaps = dsl.fetchExists(CONSULT_APPOINTMENTS, CONSULT_APPOINTMENTS.COUNSELOR_ID.eq(counselorId)
+                    .and(CONSULT_APPOINTMENTS.STARTS_AT.lt(start.plusMinutes(minutes))).and(CONSULT_APPOINTMENTS.ENDS_AT.gt(start)));
+            dsl.insertInto(CONSULT_APPOINTMENTS)
+                    .set(CONSULT_APPOINTMENTS.KIND, q.getType())
+                    .set(CONSULT_APPOINTMENTS.INQUIRY_ID, q.getId())
+                    .set(CONSULT_APPOINTMENTS.COUNSELOR_ID, overlaps && ownerId != null ? ownerId : counselorId)
+                    .set(CONSULT_APPOINTMENTS.TITLE, q.getStudentName() + (q.getType() == InquiryType.level_test ? " 레벨테스트" : " 상담"))
+                    .set(CONSULT_APPOINTMENTS.STARTS_AT, start)
+                    .set(CONSULT_APPOINTMENTS.ENDS_AT, start.plusMinutes(minutes))
+                    .set(CONSULT_APPOINTMENTS.STATUS, q.getStatus() == InquiryStatus.completed ? AppointmentStatus.done : AppointmentStatus.scheduled)
+                    .set(CONSULT_APPOINTMENTS.CREATED_BY, counselorId)
+                    .execute();
+            count++;
+        }
+        // 접수 없는 재원생 학부모 상담: 이번 주·다음 주 평일 오후
+        var students = dsl.select(STUDENTS.ID, STUDENTS.NAME).from(STUDENTS)
+                .where(STUDENTS.STATUS.eq(StudentStatus.enrolled)).orderBy(STUDENTS.STUDENT_CODE).limit(6).fetch();
+        LocalDate monday = LocalDate.now(seoul).with(java.time.DayOfWeek.MONDAY);
+        for (int i = 0; i < students.size(); i++) {
+            OffsetDateTime start = monday.plusDays(i * 2L + (i >= 3 ? 1 : 0)).atTime(13 + i % 3, i % 2 == 0 ? 0 : 30)
+                    .atZone(seoul).toOffsetDateTime();
+            dsl.insertInto(CONSULT_APPOINTMENTS)
+                    .set(CONSULT_APPOINTMENTS.KIND, InquiryType.consult)
+                    .set(CONSULT_APPOINTMENTS.STUDENT_ID, students.get(i).value1())
+                    .set(CONSULT_APPOINTMENTS.COUNSELOR_ID, i % 3 == 2 && ownerId != null ? ownerId : counselorId)
+                    .set(CONSULT_APPOINTMENTS.TITLE, students.get(i).value2() + " 학부모 상담")
+                    .set(CONSULT_APPOINTMENTS.STARTS_AT, start)
+                    .set(CONSULT_APPOINTMENTS.ENDS_AT, start.plusMinutes(30))
+                    .set(CONSULT_APPOINTMENTS.MEMO, "중간 학습 점검")
+                    .set(CONSULT_APPOINTMENTS.CREATED_BY, counselorId)
+                    .execute();
+            count++;
+        }
+        log.info("개발용 샘플 상담 일정 {}건 생성", count);
     }
 
     private void seedCurriculum() {

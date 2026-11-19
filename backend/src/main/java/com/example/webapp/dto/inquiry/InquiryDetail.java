@@ -4,6 +4,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import com.example.webapp.dto.appointment.AppointmentResponse;
 import com.example.webapp.jooq.enums.InquiryStatus;
 import com.example.webapp.jooq.enums.InquiryType;
 import com.example.webapp.jooq.enums.StudentStatus;
@@ -29,7 +30,9 @@ public record InquiryDetail(
         @Schema(types = {"object", "null"}) LinkedStudent student,
         /** 학생이 아직 연결되지 않았을 때: 학부모 연락처 또는 이름+학교가 같은 기존 학생 */
         List<LinkedStudent> similarStudents,
-        List<InquiryNote> notes) {
+        List<InquiryNote> notes,
+        /** 이 접수로 잡은 상담·레벨테스트 일정 (시간순) */
+        List<AppointmentResponse> appointments) {
 
     public record LinkedStudent(UUID id, String studentCode, String name,
             @Schema(types = {"string", "null"}) String school,

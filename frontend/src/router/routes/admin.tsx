@@ -1,6 +1,7 @@
 // 대표·상담실장 화면 (/admin/**). 백엔드 /api/admin/** 와 같은 역할 구분.
 import type { RouteObject } from 'react-router'
 import { RequireAuth } from '@/router/guards'
+import { ConsultCalendarView } from '@/views/admin/ConsultCalendarView'
 import { DashboardView } from '@/views/admin/DashboardView'
 import { InquiriesView } from '@/views/admin/InquiriesView'
 import { InquiryDetailView } from '@/views/admin/InquiryDetailView'
@@ -16,7 +17,7 @@ export const adminRoutes: RouteObject[] = [
       { path: 'inquiries', element: <InquiriesView /> },
       { path: 'inquiries/:id', element: <InquiryDetailView /> },
       // 상담·레벨테스트 일정 달력 (월간·주간)
-      { path: 'consult-calendar', element: <PlaceholderView title="상담 달력" plan="2주차" /> },
+      { path: 'consult-calendar', element: <ConsultCalendarView /> },
       // 학생·강사 검색 → 개인 주간 시간표 (?student=ID / ?teacher=ID)
       { path: 'timetables', element: <PlaceholderView title="시간표 조회" plan="2주차" /> },
       { path: 'students', element: <StudentsView /> },

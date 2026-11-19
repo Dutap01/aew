@@ -20,6 +20,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/appointments/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/appointments/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["changeStatus_1"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/public/inquiries": {
         parameters: {
             query?: never;
@@ -62,6 +94,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["addNote"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/appointments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["range"];
+        put?: never;
+        post: operations["create_1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -180,6 +228,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/appointments/counselors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["counselors"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -187,6 +251,29 @@ export interface components {
         InquiryStatusChangeRequest: {
             /** @enum {string} */
             status: "received" | "contacted" | "scheduled" | "completed" | "canceled";
+        };
+        AppointmentResponse: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind: "consult" | "level_test";
+            /** @enum {string} */
+            status: "scheduled" | "done" | "canceled" | "no_show";
+            title: string;
+            /** Format: date-time */
+            startsAt: string;
+            /** Format: date-time */
+            endsAt: string;
+            memo: string | null;
+            /** Format: uuid */
+            counselorId: string | null;
+            counselorName: string | null;
+            /** Format: uuid */
+            inquiryId: string | null;
+            /** Format: uuid */
+            studentId: string | null;
+            studentName: string | null;
+            studentCode: string | null;
         };
         InquiryDetail: {
             /** Format: uuid */
@@ -210,6 +297,7 @@ export interface components {
             student: components["schemas"]["LinkedStudent"];
             similarStudents: components["schemas"]["LinkedStudent"][];
             notes: components["schemas"]["InquiryNote"][];
+            appointments: components["schemas"]["AppointmentResponse"][];
         };
         InquiryNote: {
             /** Format: uuid */
@@ -234,6 +322,20 @@ export interface components {
             date: string;
             time: string;
         };
+        AppointmentUpdateRequest: {
+            title: string;
+            /** Format: date-time */
+            startsAt: string;
+            /** Format: date-time */
+            endsAt: string;
+            /** Format: uuid */
+            counselorId?: string | null;
+            memo?: string | null;
+        };
+        AppointmentStatusRequest: {
+            /** @enum {string} */
+            status: "scheduled" | "done" | "canceled" | "no_show";
+        };
         InquiryCreateRequest: {
             /** @enum {string} */
             type: "consult" | "level_test";
@@ -256,6 +358,22 @@ export interface components {
         };
         NoteCreateRequest: {
             content: string;
+        };
+        AppointmentCreateRequest: {
+            /** Format: uuid */
+            inquiryId?: string | null;
+            /** Format: uuid */
+            studentId?: string | null;
+            /** @enum {string|null} */
+            kind?: "consult" | "level_test" | null;
+            title?: string | null;
+            /** Format: date-time */
+            startsAt: string;
+            /** Format: date-time */
+            endsAt: string;
+            /** Format: uuid */
+            counselorId?: string | null;
+            memo?: string | null;
         };
         CourseClass: {
             name: string;
@@ -350,6 +468,13 @@ export interface components {
             /** Format: int64 */
             canceled: number;
         };
+        StaffOption: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** @enum {string} */
+            role: "owner" | "counselor" | "teacher" | "student";
+        };
     };
     responses: never;
     parameters: never;
@@ -381,6 +506,58 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["InquiryDetail"];
+                };
+            };
+        };
+    };
+    update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AppointmentUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AppointmentResponse"];
+                };
+            };
+        };
+    };
+    changeStatus_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AppointmentStatusRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AppointmentResponse"];
                 };
             };
         };
@@ -457,6 +634,54 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["InquiryDetail"];
+                };
+            };
+        };
+    };
+    range: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+                counselorId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AppointmentResponse"][];
+                };
+            };
+        };
+    };
+    create_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AppointmentCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AppointmentResponse"];
                 };
             };
         };
@@ -615,6 +840,26 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["InquiryCounts"];
+                };
+            };
+        };
+    };
+    counselors: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["StaffOption"][];
                 };
             };
         };

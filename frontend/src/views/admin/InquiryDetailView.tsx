@@ -1,17 +1,22 @@
 // 접수 상세 (대표·상담실장): 신청 내용, 상태 처리, 상담 기록, 학생 등록·기존 학생 연결
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Check, LoaderCircle, Phone, UserPlus, Link2 } from 'lucide-react'
+import { ArrowLeft, CalendarPlus, Check, LoaderCircle, Phone, UserPlus, Link2 } from 'lucide-react'
 import { type FormEvent, type ReactNode, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { errorMessage } from '@/api/errors'
 import { addInquiryNote, changeInquiryStatus, getInquiry, linkInquiryStudent } from '@/api/inquiries'
+import { AppointmentDetailDialog } from '@/components/appointment/AppointmentDetailDialog'
+import { type AppointmentFormTarget, AppointmentFormDialog } from '@/components/appointment/AppointmentFormDialog'
+import { AppointmentStatusBadge } from '@/components/appointment/AppointmentStatusBadge'
 import { Topbar } from '@/components/layout/Topbar'
 import { Card } from '@/components/ui/Card'
 import { INQUIRY_STATUS_LABEL, INQUIRY_TYPE_LABEL, InquiryStatusBadge } from '@/components/ui/InquiryBadges'
 import { StudentStatusBadge } from '@/components/ui/StudentStatusBadge'
+import type { Appointment } from '@/types/appointment'
 import type { InquiryDetail, InquiryStatus, LinkedStudent } from '@/types/inquiry'
 import { cn } from '@/utils/cn'
 import { formatDateTime, formatShortDate } from '@/utils/format'
+import { addDays, seoulParts, todaySeoul } from '@/utils/seoulDate'
 
 const FLOW: InquiryStatus[] = ['received', 'contacted', 'scheduled', 'completed']
 
@@ -41,6 +46,9 @@ export function InquiryDetailView() {
     queryClient.invalidateQueries({ queryKey: ['students'] })
   }
 
+  const [formTarget, setFormTarget] = useState<AppointmentFormTarget | null>(null)
+  const [selected, setSelected] = useState<Appointment | null>(null)
+
   if (query.isError) {
     return (
       <>
@@ -65,12 +73,29 @@ export function InquiryDetailView() {
           <NotesCard d={d} onUpdated={onUpdated} />
         </div>
         <div className="flex min-w-0 flex-col gap-4">
-          <StatusCard d={d} onUpdated={onUpdated} />
+          <StatusCard d={d} onUpdated={onUpdated} onSchedule={() => setFormTarget(scheduleTarget(d))} />
+          <ScheduleCard d={d} onSchedule={() => setFormTarget(scheduleTarget(d))} onOpen={setSelected} />
           <StudentCard d={d} onUpdated={onUpdated} />
         </div>
       </div>
+
+      <AppointmentFormDialog target={formTarget} onClose={() => setFormTarget(null)} />
+      <AppointmentDetailDialog appointment={selected} onClose={() => setSelected(null)} onChanged={setSelected}
+        onEdit={(a) => { setSelected(null); setFormTarget({ mode: 'edit', appointment: a }) }} />
     </>
   )
+}
+
+/** 일정 잡기 창: 아직 지나지 않은 첫 희망 일정, 없으면 내일 16:00 */
+function scheduleTarget(d: InquiryDetail): AppointmentFormTarget {
+  const today = todaySeoul()
+  const slot = d.preferredSlots.find((s) => s.date >= today)
+  return {
+    mode: 'create',
+    date: slot?.date ?? addDays(today, 1),
+    time: slot?.time ?? '16:00',
+    inquiry: { id: d.id, type: d.type, studentName: d.studentName, slots: d.preferredSlots },
+  }
 }
 
 function BackLink() {
@@ -116,12 +141,23 @@ function ApplicationCard({ d }: { d: InquiryDetail }) {
   )
 }
 
-function StatusCard({ d, onUpdated }: { d: InquiryDetail; onUpdated: (d: InquiryDetail) => void }) {
-  const mutation = useMutation({ mutationFn: (to: InquiryStatus) => changeInquiryStatus(d.id, to), onSuccess: onUpdated })
+function StatusCard({ d, onUpdated, onSchedule }: { d: InquiryDetail; onUpdated: (d: InquiryDetail) => void; onSchedule: () => void }) {
+  const queryClient = useQueryClient()
+  const mutation = useMutation({
+    mutationFn: (to: InquiryStatus) => changeInquiryStatus(d.id, to),
+    onSuccess: (detail) => {
+      onUpdated(detail)
+      queryClient.invalidateQueries({ queryKey: ['appointments'] }) // 접수 취소 시 일정도 취소됨
+    },
+  })
   const currentIndex = FLOW.indexOf(d.status)
+  const hasScheduled = d.appointments.some((a) => a.status === 'scheduled')
+  // 상담 달력과 어긋나지 않게: 예약이 남아 있으면 완료·연락완료는 일정 쪽에서 처리
+  const actions = d.nextStatuses.filter((to) => !(hasScheduled && (to === 'completed' || to === 'contacted')))
 
   function onClick(to: InquiryStatus) {
-    if (to === 'canceled' && !window.confirm('이 접수를 취소할까요?')) return
+    if (to === 'scheduled') return onSchedule() // 예약확정 = 일정 잡기
+    if (to === 'canceled' && !window.confirm(hasScheduled ? '이 접수를 취소할까요? 예약된 일정도 함께 취소됩니다.' : '이 접수를 취소할까요?')) return
     mutation.mutate(to)
   }
 
@@ -146,23 +182,73 @@ function StatusCard({ d, onUpdated }: { d: InquiryDetail; onUpdated: (d: Inquiry
       </ol>
       {d.status === 'canceled' && <p className="mb-4 rounded-xl bg-track px-3 py-2 text-xs text-muted">취소된 접수입니다.</p>}
 
-      {d.nextStatuses.length === 0 ? (
+      {actions.length === 0 ? (
         <p className="text-xs text-muted">처리가 끝난 접수입니다.</p>
       ) : (
         <div className="flex flex-wrap gap-2">
-          {d.nextStatuses.map((to) => (
+          {actions.map((to) => (
             <button key={to} type="button" disabled={mutation.isPending} onClick={() => onClick(to)}
               className={cn('h-9 rounded-xl px-3.5 text-xs font-bold transition-colors disabled:opacity-50',
                 to === 'canceled' ? 'bg-white text-alert ring-1 ring-alert/30 hover:bg-alert/10'
                   : isBackward(to, d.status) ? 'bg-track text-ink hover:bg-line'
                   : 'bg-brand text-white hover:bg-brand-700')}>
-              {ACTION_LABEL[to]}
+              {to === 'scheduled' ? '예약확정 (일정 잡기)' : ACTION_LABEL[to]}
             </button>
           ))}
         </div>
       )}
       {mutation.isError && <p role="alert" className="mt-3 text-xs text-alert">{errorMessage(mutation.error)}</p>}
-      <p className="mt-4 text-[11px] text-muted">마지막 변경 {formatDateTime(d.updatedAt)} · 예약 일정은 상담 달력에서 잡습니다 (2-2단계).</p>
+      {d.status === 'scheduled' && !hasScheduled && (
+        <div className="mt-3 flex items-center justify-between gap-2 rounded-xl bg-wait/15 px-3 py-2 text-xs text-[#a16207]">
+          <span>예약확정 상태인데 상담 달력에 일정이 없습니다.</span>
+          <button type="button" onClick={onSchedule} className="shrink-0 font-bold underline">일정 잡기</button>
+        </div>
+      )}
+      {hasScheduled && (
+        <p className="mt-3 rounded-xl bg-sky-soft px-3 py-2 text-xs text-navy">
+          예약된 일정이 있습니다. 일정을 <b>완료</b>하면 접수도 완료되고, 일정을 <b>취소·불참</b> 처리하면 연락완료로 돌아갑니다.
+        </p>
+      )}
+      <p className="mt-4 text-[11px] text-muted">마지막 변경 {formatDateTime(d.updatedAt)}</p>
+    </Card>
+  )
+}
+
+/** 이 접수의 상담·레벨테스트 일정 + 일정 잡기 */
+function ScheduleCard({ d, onSchedule, onOpen }: { d: InquiryDetail; onSchedule: () => void; onOpen: (a: Appointment) => void }) {
+  const closed = d.status === 'completed' || d.status === 'canceled'
+  const openCreate = onSchedule
+
+  return (
+    <Card hoverLift={false} index={2}>
+      <CardTitle right={
+        !closed && (
+          <button type="button" onClick={openCreate}
+            className="inline-flex h-8 items-center gap-1 rounded-lg bg-brand px-2.5 text-xs font-bold text-white hover:bg-brand-700">
+            <CalendarPlus className="size-3.5" aria-hidden /> 일정 잡기
+          </button>
+        )
+      }>{d.type === 'level_test' ? '레벨테스트 일정' : '상담 일정'}</CardTitle>
+      {d.appointments.length === 0 ? (
+        <p className="text-xs text-muted">{closed ? '잡힌 일정이 없습니다.' : '아직 일정이 없습니다. 희망 일정을 보고 일정을 잡으세요.'}</p>
+      ) : (
+        <ul className="space-y-2">
+          {d.appointments.map((a) => (
+            <li key={a.id}>
+              <button type="button" onClick={() => onOpen(a)}
+                className="flex w-full items-center gap-3 rounded-xl bg-panel px-3 py-2.5 text-left hover:bg-brand-50">
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-bold text-ink tabular-nums">
+                    {formatDateTime(a.startsAt)} ~ {seoulParts(a.endsAt).time}
+                  </span>
+                  <span className="block truncate text-xs text-muted">담당 {a.counselorName ?? '-'}{a.memo ? ` · ${a.memo}` : ''}</span>
+                </span>
+                <AppointmentStatusBadge status={a.status} />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </Card>
   )
 }
@@ -185,7 +271,7 @@ function StudentCard({ d, onUpdated }: { d: InquiryDetail; onUpdated: (d: Inquir
   }
 
   return (
-    <Card hoverLift={false} index={2}>
+    <Card hoverLift={false} index={3}>
       <CardTitle>학생 등록</CardTitle>
       <p className="mb-3 text-xs text-muted">
         아직 학생으로 등록되지 않은 접수입니다. 등록하면 상담 기록이 학생 타임라인에 함께 남습니다.
