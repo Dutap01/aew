@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Vue 개발 환경 설치 (Dockerfile 에서 실행: bash ${APP_PATH}/setting-script/install_vue.sh)
+# Node/npm 설치 (Dockerfile base 스테이지에서 실행)
 set -euo pipefail
 
 apt-get update

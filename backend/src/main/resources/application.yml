@@ -1,6 +1,16 @@
+# 기본(개발) 설정. 개발 컨테이너의 로컬 DB(pg_local)에 붙는다.
+# 배포에서는 SPRING_DATASOURCE_URL / USERNAME / PASSWORD 환경변수로 덮어쓴다.
 server:
   port: 8080
 
 spring:
   application:
     name: webapp
+  datasource:
+    url: jdbc:postgresql://localhost:5432/aew
+    username: aew
+    password: aew
+  jooq:
+    sql-dialect: postgres
+  flyway:
+    locations: classpath:db/migration
