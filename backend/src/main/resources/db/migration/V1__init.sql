@@ -51,6 +51,8 @@ CREATE TABLE profiles (
     created_at     timestamptz NOT NULL DEFAULT now(),
     updated_at     timestamptz NOT NULL DEFAULT now()
 );
+-- 로그인은 대소문자를 무시한다 (s-0001 = S-0001). 대소문자만 다른 아이디도 막는다
+CREATE UNIQUE INDEX profiles_login_id_lower_uidx ON profiles (lower(login_id));
 
 CREATE SEQUENCE student_code_seq;
 

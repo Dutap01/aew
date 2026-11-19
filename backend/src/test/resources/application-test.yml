@@ -2,3 +2,7 @@
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/aew_test
+
+app:
+  seed:
+    enabled: false

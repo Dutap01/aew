@@ -4,10 +4,19 @@ import { motion, useReducedMotion } from 'motion/react'
 import { type FormEvent, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { ApiError } from '@/api/client'
-import { MOCK_PASSWORD, mockUsers } from '@/mocks/auth'
 import { useAuthStore } from '@/stores/authStore'
 import { cardEnter } from '@/utils/motion'
+import type { Role } from '@/types/auth'
 import { homePathOf, ROLE_LABEL } from '@/utils/role'
+
+/** 개발 DB 샘플 계정 (backend DevDataSeeder, 개발 모드 화면에만 표시) */
+const DEV_PASSWORD = '1234'
+const DEV_ACCOUNTS: { loginId: string; role: Role }[] = [
+  { loginId: 'owner', role: 'owner' },
+  { loginId: 'counselor', role: 'counselor' },
+  { loginId: 'teacher', role: 'teacher' },
+  { loginId: 'S-0001', role: 'student' },
+]
 
 const INPUT =
   'h-11 w-full rounded-xl border border-line bg-white px-3.5 text-sm text-ink outline-none transition-colors placeholder:text-muted/70 focus:border-brand focus:ring-2 focus:ring-brand/20'
@@ -43,7 +52,7 @@ export function LoginView() {
     } catch (err) {
       setError(
         err instanceof ApiError && err.status === 401
-          ? '아이디 또는 비밀번호가 올바르지 않습니다.'
+          ? (serverMessage(err.body) ?? '아이디 또는 비밀번호가 올바르지 않습니다.')
           : '로그인 중 오류가 발생했습니다. 잠시 후 다시 시도하세요.',
       )
     } finally {
@@ -133,19 +142,23 @@ export function LoginView() {
 
         <p className="mt-5 text-center text-[11px] text-muted">비밀번호를 잊었으면 학원에 문의하세요.</p>
 
-        {import.meta.env.DEV && <DevAccounts onPick={(id) => { setLoginId(id); setPassword(MOCK_PASSWORD) }} />}
+        {import.meta.env.DEV && <DevAccounts onPick={(id) => { setLoginId(id); setPassword(DEV_PASSWORD) }} />}
       </motion.div>
     </div>
   )
 }
 
-/** 개발 모드에서만: mock 테스트 계정 (백엔드 로그인 연결 후 삭제) */
+function serverMessage(body: unknown): string | null {
+  return body && typeof body === 'object' && 'message' in body && typeof body.message === 'string' ? body.message : null
+}
+
+/** 개발 모드에서만: 개발 DB 샘플 계정 */
 function DevAccounts({ onPick }: { onPick: (loginId: string) => void }) {
   return (
     <div className="mt-6 border-t border-dashed border-line pt-4">
-      <p className="mb-2 text-[11px] font-semibold text-muted">개발용 테스트 계정 (비밀번호 {MOCK_PASSWORD})</p>
+      <p className="mb-2 text-[11px] font-semibold text-muted">개발용 샘플 계정 (비밀번호 {DEV_PASSWORD})</p>
       <div className="flex flex-wrap gap-1.5">
-        {mockUsers.map((u) => (
+        {DEV_ACCOUNTS.map((u) => (
           <button
             key={u.loginId}
             type="button"

@@ -54,7 +54,11 @@ cd frontend && npm install && npm run dev
 ### backend/
 | 경로 | 역할 |
 |---|---|
-| `controller/` | REST API (`/api/**`) |
+| `controller/` | REST API (`/api/**`). `admin/` 대표·실장용 |
+| `service/`, `repository/`, `dto/` | 업무 로직 / jOOQ 쿼리 / 요청·응답 (OpenAPI 명세의 원천) |
+| `security/` | `SecurityConfig`(세션 로그인·CSRF·경로별 역할), `AppUser`, `ProfileUserDetailsService`, `AuthController` |
+| `seed/` | `DevDataSeeder`(개발 샘플 데이터), `OwnerBootstrap`(운영 첫 대표 계정) |
+| `config/OpenApiConfig.java` | Swagger 명세 설정 (응답 필드 required 표시) |
 | `config/SpaWebConfig.java` | SPA(React Router) 새로고침 대응 (없는 경로 → index.html) |
 | `resources/application*.yml` | 기본 / `prod` 프로파일 설정 |
 | `resources/db/migration/` | Flyway SQL. jOOQ 클래스(`com.example.webapp.jooq`)는 빌드 때 이 스키마에서 생성 (git 제외) |
@@ -82,7 +86,22 @@ cd frontend && npm install && npm run dev
 - 역할: `owner`(대표) · `counselor`(상담실장) · `teacher`(강사) · `student`(학생). 대표는 학생 화면을 뺀 모든 화면에 들어갈 수 있다.
 - `/admin/**` 대표·실장, `/t/**` 강사·대표, `/s/**` 학생, `/apply/**`·`/curriculum/**`·`/r/**` 로그인 없이.
 - 화면 가드(`router/guards.tsx`)는 편의용이다. 실제 접근 제어는 백엔드 API 에서 한다.
-- 로그인은 지금 `src/api/auth.ts` 가 mock 계정(`src/mocks/auth.ts`, 비밀번호 1234)으로 흉내 낸다. 백엔드 로그인이 생기면 함수 본문만 주석의 API 호출로 바꾼다.
+- 로그인은 Spring Security 세션 로그인이다 (`backend/.../security/SecurityConfig.java`).
+  - `POST /api/auth/login` (form: `loginId`, `password`), `POST /api/auth/logout`, `GET /api/auth/me`
+  - CSRF: 서버가 `XSRF-TOKEN` 쿠키를 주고, 프런트(`api/client.ts`)가 GET 이 아닌 요청에 `X-XSRF-TOKEN` 헤더로 돌려보낸다
+  - 로그인 중 API 가 401 이면(세션 만료 8시간) 자동으로 로그인 화면으로 간다
+  - 학생은 학생 코드로 로그인한다 (대소문자 무시)
+
+### 개발용 샘플 데이터
+개발 DB 에 계정이 하나도 없으면 서버 시작 시 `DevDataSeeder` 가 넣는다 (prod 에서는 동작 안 함).
+- 계정 (비밀번호 모두 `1234`): `owner`(대표), `counselor`(상담실장), `teacher`·`teacher2`·`teacher3`(강사), `S-0001`(학생 박학생)
+- 반 6개(중1~3 A/B, 요일·시간), 학생 150명 (`app.seed.students` 로 조절, 동명이인 포함)
+- 다시 만들기: 컨테이너에서 `pg_local reset` 후 백엔드 재시작
+
+### API 타입 맞추기 (OpenAPI)
+- 백엔드 실행 중 Swagger UI: `http://<서버>:8080/swagger-ui.html` (prod 에서는 꺼짐)
+- 백엔드 DTO 를 바꾼 뒤 컨테이너에서 `cd frontend && npm run gen:api` → `src/api/schema.d.ts` 재생성 (git 에 올린다)
+- 프런트 타입은 `types/*.ts` 에서 `components['schemas'][...]` 로 가져다 쓴다. 값이 없을 수 있는 필드는 DTO 에 `@Schema(types = {"string", "null"})`
 
 ### mock → 실제 API 로 교체
 `frontend/src/api/dashboard.ts` 의 각 함수 옆 주석에 대응하는 API 경로가 적혀 있다. 함수 본문만 바꾸면 페이지/컴포넌트는 수정하지 않아도 된다.
@@ -109,7 +128,7 @@ export const getTrend = () => api.get<TrendSeries>('/dashboard/trend')
 
 ## 남은 작업 / 알려진 이슈
 
-- **백엔드 인증 미구현**: 로그인 화면·역할별 가드·메뉴는 있지만 mock 로그인이다. Spring Security 세션 로그인을 붙여야 한다 (1주차 4단계).
+- **계정 관리 화면 미구현**: 운영 서버 첫 대표 계정은 환경변수 `OWNER_LOGIN_ID` / `OWNER_PASSWORD`(8자 이상)로 만든다 (`OwnerBootstrap`). 나머지 계정은 계정·권한 화면(대표 전용)에서 만들 예정.
 - **대시보드 외 화면 미구현**: 대시보드 홈만 구현됐고 나머지 메뉴는 placeholder 다. 데이터는 전부 mock 이다.
 - **프론트 테스트 미구성**: 빌드/타입 검사와 브라우저 수동 확인만 했다. Vitest + Testing Library 도입 권장.
 - **도메인/HTTPS 미연결**: `docs/deployment.md` 의 "도메인 연결" 참고.

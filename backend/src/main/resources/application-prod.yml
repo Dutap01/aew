@@ -2,3 +2,25 @@
 logging:
   level:
     root: INFO
+
+server:
+  servlet:
+    session:
+      cookie:
+        secure: ${SESSION_COOKIE_SECURE:false}   # HTTPS 연결 후 true
+
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://db:5432/aew}
+    username: ${SPRING_DATASOURCE_USERNAME:aew}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+
+app:
+  seed:
+    enabled: false
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

@@ -2,6 +2,7 @@
 import type { RouteObject } from 'react-router'
 import { RequireAuth } from '@/router/guards'
 import { DashboardView } from '@/views/admin/DashboardView'
+import { StudentsView } from '@/views/admin/StudentsView'
 import { PlaceholderView } from '@/views/base/PlaceholderView'
 
 export const adminRoutes: RouteObject[] = [
@@ -16,7 +17,7 @@ export const adminRoutes: RouteObject[] = [
       { path: 'consult-calendar', element: <PlaceholderView title="상담 달력" plan="2주차" /> },
       // 학생·강사 검색 → 개인 주간 시간표 (?student=ID / ?teacher=ID)
       { path: 'timetables', element: <PlaceholderView title="시간표 조회" plan="2주차" /> },
-      { path: 'students', element: <PlaceholderView title="학생" plan="2주차" /> },
+      { path: 'students', element: <StudentsView /> },
       { path: 'students/:id', element: <PlaceholderView title="학생 타임라인" plan="2주차" /> },
       { path: 'level-tests', element: <PlaceholderView title="레벨테스트 결과" plan="2주차" /> },
       { path: 'diagnoses/:id', element: <PlaceholderView title="진단서" plan="3주차" /> },

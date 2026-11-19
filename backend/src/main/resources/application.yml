@@ -1,7 +1,13 @@
 # 기본(개발) 설정. 개발 컨테이너의 로컬 DB(pg_local)에 붙는다.
-# 배포에서는 SPRING_DATASOURCE_URL / USERNAME / PASSWORD 환경변수로 덮어쓴다.
+# 배포에서는 SPRING_DATASOURCE_URL / USERNAME / PASSWORD 환경변수로 덮어쓴다 (application-prod.yml).
 server:
   port: 8080
+  servlet:
+    session:
+      timeout: 8h            # 로그인 유지 시간 (마지막 요청 기준)
+      cookie:
+        http-only: true
+        same-site: lax
 
 spring:
   application:
@@ -14,3 +20,16 @@ spring:
     sql-dialect: postgres
   flyway:
     locations: classpath:db/migration
+
+app:
+  seed:
+    enabled: true            # 개발용 샘플 데이터 (계정·반·학생). prod 에서는 꺼짐
+    students: 150
+  bootstrap:                 # 운영 최초 대표 계정 (환경변수 OWNER_LOGIN_ID / OWNER_PASSWORD)
+    owner-login-id: ${OWNER_LOGIN_ID:}
+    owner-password: ${OWNER_PASSWORD:}
+    owner-name: ${OWNER_NAME:대표}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html   # API 명세: http://localhost:8080/swagger-ui.html

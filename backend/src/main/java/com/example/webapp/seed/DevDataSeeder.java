@@ -1,0 +1,163 @@
+package com.example.webapp.seed;
+
+import static com.example.webapp.jooq.Tables.CLASSES;
+import static com.example.webapp.jooq.Tables.CLASS_SCHEDULES;
+import static com.example.webapp.jooq.Tables.ENROLLMENTS;
+import static com.example.webapp.jooq.Tables.PROFILES;
+import static com.example.webapp.jooq.Tables.STUDENTS;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.UUID;
+
+import org.jooq.DSLContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.core.env.Environment;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.example.webapp.jooq.enums.StudentStatus;
+import com.example.webapp.jooq.enums.UserRole;
+
+/**
+ * 개발용 샘플 데이터. DB 에 계정이 하나도 없을 때만 넣는다 (app.seed.enabled=true, prod 프로파일에서는 동작 안 함).
+ * <ul>
+ *   <li>계정 (비밀번호 모두 1234): owner(대표), counselor(상담실장), teacher·teacher2·teacher3(강사), S-0001(학생)</li>
+ *   <li>반 6개 (중1~중3 A/B) + 요일·시간</li>
+ *   <li>학생 app.seed.students 명 (기본 150). 이름이 겹치는 학생도 생기도록 성·이름 조합에서 고정 난수로 생성</li>
+ * </ul>
+ * 다시 만들려면 개발 컨테이너에서 pg_local reset 후 서버를 재시작한다.
+ */
+@Component
+@ConditionalOnProperty(name = "app.seed.enabled", havingValue = "true")
+public class DevDataSeeder implements ApplicationRunner {
+
+    private static final Logger log = LoggerFactory.getLogger(DevDataSeeder.class);
+    private static final String DEV_PASSWORD = "1234";
+
+    private static final String[] SURNAMES = {"김", "이", "박", "최", "정", "강", "조", "윤", "장", "임", "한", "오", "서", "신", "권"};
+    private static final String[] GIVEN = {"민준", "서연", "도윤", "하은", "시우", "지유", "주원", "서윤", "예준", "지아",
+            "하준", "수아", "지호", "하린", "준서", "다은", "건우", "채원", "현우", "윤서", "우진", "소율", "선우", "예린"};
+    private static final String[] SCHOOLS = {"한빛중", "새솔중", "푸른중", "하늘중"};
+
+    private final DSLContext dsl;
+    private final PasswordEncoder encoder;
+    private final Environment env;
+    private final int studentCount;
+
+    public DevDataSeeder(DSLContext dsl, PasswordEncoder encoder, Environment env,
+            @Value("${app.seed.students:150}") int studentCount) {
+        this.dsl = dsl;
+        this.encoder = encoder;
+        this.env = env;
+        this.studentCount = studentCount;
+    }
+
+    @Override
+    @Transactional
+    public void run(ApplicationArguments args) {
+        if (Arrays.asList(env.getActiveProfiles()).contains("prod")) {
+            log.warn("prod 프로파일에서는 샘플 데이터를 넣지 않습니다 (app.seed.enabled 무시)");
+            return;
+        }
+        if (dsl.fetchCount(PROFILES) > 0) {
+            return;
+        }
+        String hash = encoder.encode(DEV_PASSWORD);
+
+        profile("owner", "정하늘", UserRole.owner, hash);
+        profile("counselor", "김상담", UserRole.counselor, hash);
+        UUID t1 = profile("teacher", "이강사", UserRole.teacher, hash);
+        UUID t2 = profile("teacher2", "박영어", UserRole.teacher, hash);
+        UUID t3 = profile("teacher3", "최문법", UserRole.teacher, hash);
+
+        // 반: 학년별 A(월·수·금) / B(화·목), 담당 강사
+        Map<String, List<UUID>> classesByGrade = new HashMap<>();
+        int[][] slots = {{1, 3, 5}, {2, 4}};
+        UUID[][] teachers = {{t1, t2}, {t1, t3}, {t2, t3}};
+        String[] startTimes = {"16:00", "17:40", "19:20"};
+        for (int g = 1; g <= 3; g++) {
+            for (int s = 0; s < 2; s++) {
+                String name = "중" + g + (s == 0 ? "A" : "B");
+                UUID classId = dsl.insertInto(CLASSES)
+                        .set(CLASSES.NAME, name)
+                        .set(CLASSES.LEVEL, "M" + g)
+                        .set(CLASSES.TEACHER_ID, teachers[g - 1][s])
+                        .set(CLASSES.CAPACITY, 30)
+                        .returning(CLASSES.ID).fetchOne(CLASSES.ID);
+                LocalTime start = LocalTime.parse(startTimes[g - 1]);
+                for (int weekday : slots[s]) {
+                    dsl.insertInto(CLASS_SCHEDULES)
+                            .set(CLASS_SCHEDULES.CLASS_ID, classId)
+                            .set(CLASS_SCHEDULES.WEEKDAY, (short) weekday)
+                            .set(CLASS_SCHEDULES.START_TIME, start)
+                            .set(CLASS_SCHEDULES.END_TIME, start.plusMinutes(90))
+                            .execute();
+                }
+                classesByGrade.computeIfAbsent("중" + g, k -> new ArrayList<>()).add(classId);
+            }
+        }
+
+        // 학생: 순서대로 넣어 학생 코드가 S-0001 부터 붙는다
+        Random random = new Random(20261119L);
+        LocalDate enrolledFrom = LocalDate.of(2026, 9, 1);
+        for (int i = 0; i < studentCount; i++) {
+            String name = i == 0 ? "박학생" : SURNAMES[random.nextInt(SURNAMES.length)] + GIVEN[random.nextInt(GIVEN.length)];
+            String grade = "중" + (1 + random.nextInt(3));
+            StudentStatus status = i == 0 ? StudentStatus.enrolled : pickStatus(random.nextInt(100));
+            var student = dsl.insertInto(STUDENTS)
+                    .set(STUDENTS.NAME, name)
+                    .set(STUDENTS.SCHOOL, SCHOOLS[random.nextInt(SCHOOLS.length)])
+                    .set(STUDENTS.GRADE, grade)
+                    .set(STUDENTS.PARENT_NAME, name.charAt(0) + "보호자")
+                    .set(STUDENTS.PARENT_PHONE, String.format("010-%04d-%04d", 1000 + random.nextInt(9000), random.nextInt(10000)))
+                    .set(STUDENTS.STATUS, status)
+                    .returning(STUDENTS.ID, STUDENTS.STUDENT_CODE).fetchOne();
+
+            if (status == StudentStatus.enrolled || status == StudentStatus.paused) {
+                List<UUID> classes = classesByGrade.get(grade);
+                dsl.insertInto(ENROLLMENTS)
+                        .set(ENROLLMENTS.STUDENT_ID, student.getId())
+                        .set(ENROLLMENTS.CLASS_ID, classes.get(random.nextInt(classes.size())))
+                        .set(ENROLLMENTS.START_DATE, enrolledFrom.plusDays(random.nextInt(60)))
+                        .execute();
+            }
+            if (i == 0) {
+                // 학생 로그인 계정: 학생 코드 S-0001 / 1234
+                UUID profileId = profile(student.getStudentCode(), name, UserRole.student, hash);
+                dsl.update(STUDENTS).set(STUDENTS.PROFILE_ID, profileId).where(STUDENTS.ID.eq(student.getId())).execute();
+            }
+        }
+        log.info("개발용 샘플 데이터 생성: 계정 6개, 반 6개, 학생 {}명 (비밀번호 {})", studentCount, DEV_PASSWORD);
+    }
+
+    /** 재원 75%, 상담중 8%, 테스트예정 7%, 휴원 5%, 퇴원 5% */
+    private static StudentStatus pickStatus(int n) {
+        if (n < 75) return StudentStatus.enrolled;
+        if (n < 83) return StudentStatus.consulting;
+        if (n < 90) return StudentStatus.test_scheduled;
+        if (n < 95) return StudentStatus.paused;
+        return StudentStatus.withdrawn;
+    }
+
+    private UUID profile(String loginId, String name, UserRole role, String hash) {
+        return dsl.insertInto(PROFILES)
+                .set(PROFILES.LOGIN_ID, loginId)
+                .set(PROFILES.PASSWORD_HASH, hash)
+                .set(PROFILES.ROLE, role)
+                .set(PROFILES.NAME, name)
+                .returning(PROFILES.ID).fetchOne(PROFILES.ID);
+    }
+}
