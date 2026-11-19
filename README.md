@@ -16,8 +16,11 @@ web-project/
 ├── docs/
 │   ├── deployment.md           # 배포 가이드 (러너, 롤백, 도메인)
 │   ├── branch-strategy.md      # 브랜치 전략, 커밋 메시지 규칙
-│   └── handover.md             # 인수인계 (구조, 자주 하는 작업, 남은 작업)
+│   ├── handover.md             # 인수인계 (구조, 자주 하는 작업, 남은 작업)
+│   ├── v1-plan.md              # V1 개발 계획서 (범위, 화면, 일정)
+│   └── db-schema.md            # DB 구조 요약 (테이블, enum, 스키마 변경 방법)
 ├── backend/                    # Spring Boot (Maven)
+│   ├── src/main/resources/db/migration/   # Flyway SQL (V1__init.sql ...) → jOOQ 코드 생성의 입력
 │   └── src/main/java/com/example/webapp/
 │       ├── controller/         # REST API (/api/**)
 │       └── config/             # SpaWebConfig (SPA 새로고침 대응)

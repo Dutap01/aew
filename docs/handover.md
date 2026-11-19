@@ -14,6 +14,9 @@
 ./run_docker.sh            # 개발 컨테이너 생성/진입 (프로젝트가 /kimlongdaechicken 에 마운트됨)
 ```
 
+컨테이너가 켜질 때 개발 DB(PostgreSQL, `localhost:5432`, 계정 `aew`/`aew`, DB `aew`·`aew_test`)도 같이 켜진다 (`pg_local start|stop|reset|status`).
+백엔드 빌드(`mvn compile` 등)는 Flyway 마이그레이션을 개발 DB 에 적용하고 jOOQ 클래스를 다시 만든다 (`docs/db-schema.md`).
+
 컨테이너 안에서 터미널 2개를 쓴다. 두 번째 터미널은 호스트에서 `./run_docker.sh` 를 한 번 더 실행하면 같은 컨테이너에 들어간다.
 
 ```bash
@@ -54,6 +57,7 @@ cd frontend && npm install && npm run dev
 | `controller/` | REST API (`/api/**`) |
 | `config/SpaWebConfig.java` | SPA(React Router) 새로고침 대응 (없는 경로 → index.html) |
 | `resources/application*.yml` | 기본 / `prod` 프로파일 설정 |
+| `resources/db/migration/` | Flyway SQL. jOOQ 클래스(`com.example.webapp.jooq`)는 빌드 때 이 스키마에서 생성 (git 제외) |
 
 ### 루트
 | 경로 | 역할 |
