@@ -10,7 +10,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-/** profiles 테이블에서 로그인 계정을 찾는다. 운영자는 아이디, 학생은 학생 코드(대소문자 무시). */
+/** profiles 테이블에서 로그인 계정을 찾는다. 운영자는 아이디, 학생은 학생 코드, 레벨테스트 계정은 T123456 (대소문자 무시). */
 @Service
 public class ProfileUserDetailsService implements UserDetailsService {
 
@@ -28,7 +28,8 @@ public class ProfileUserDetailsService implements UserDetailsService {
         if (p == null) {
             throw new UsernameNotFoundException("계정 없음");
         }
-        return new AppUser(p.getId(), p.getLoginId(), p.getPasswordHash(), p.getName(), p.getRole(), p.getActive());
+        return new AppUser(p.getId(), p.getLoginId(), p.getPasswordHash(), p.getName(), p.getRole(), p.getActive(),
+                p.getExpiresAt());
     }
 
     public void markLoggedIn(UUID profileId) {

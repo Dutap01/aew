@@ -27,6 +27,7 @@ import com.example.webapp.jooq.tables.records.InquiriesRecord;
 import com.example.webapp.notification.NotificationService;
 import com.example.webapp.notification.NotificationTemplate;
 import com.example.webapp.repository.AppointmentRepository;
+import com.example.webapp.repository.AttemptRepository;
 import com.example.webapp.repository.InquiryRepository;
 
 /**
@@ -51,9 +52,11 @@ public class InquiryService {
     private final AppointmentRepository appointments;
     private final AuditService audit;
     private final NotificationService notifications;
+    private final AttemptRepository attemptRepository;
 
     public InquiryService(DSLContext dsl, InquiryRepository inquiries, AppointmentRepository appointments, AuditService audit,
-            NotificationService notifications) {
+            NotificationService notifications, AttemptRepository attemptRepository) {
+        this.attemptRepository = attemptRepository;
         this.dsl = dsl;
         this.inquiries = inquiries;
         this.appointments = appointments;
@@ -202,7 +205,8 @@ public class InquiryService {
                 r.getCreatedAt(), r.getUpdatedAt(), TRANSITIONS.get(r.getStatus()), student,
                 student == null ? inquiries.similarStudents(r) : List.of(),
                 inquiries.notes(r.getId()),
-                appointments.findByInquiry(r.getId()));
+                appointments.findByInquiry(r.getId()),
+                attemptRepository.byInquiry(r.getId()));
     }
 
     /** 01012345678 / 010-1234-5678 → 010-1234-5678 */

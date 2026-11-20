@@ -36,7 +36,7 @@ export function AppShell() {
       <Sidebar collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} summary={summary} />
 
       <div className="min-w-0 flex-1 py-3 pr-3 md:py-4 md:pr-4">
-        <main className="relative min-h-[calc(100dvh-1.5rem)] overflow-hidden rounded-panel bg-panel md:min-h-[calc(100dvh-2rem)]">
+        <main className="relative min-h-[calc(100dvh-1.5rem)] overflow-clip rounded-panel bg-panel md:min-h-[calc(100dvh-2rem)]">
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={location.pathname}

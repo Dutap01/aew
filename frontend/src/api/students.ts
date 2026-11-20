@@ -1,4 +1,4 @@
-import type { StudentDetail, StudentPage, StudentStatus, StudentUpsertRequest } from '@/types/student'
+import type { StudentCredentials, StudentDetail, StudentPage, StudentStatus, StudentUpsertRequest } from '@/types/student'
 import { api, toQuery } from './client'
 
 export interface StudentSearchParams {
@@ -27,3 +27,7 @@ export const enrollStudent = (id: string, classId: string, startDate: string | n
 /** 반 소속 종료 (대표). endDate 가 없으면 오늘 */
 export const endEnrollment = (id: string, enrollmentId: string, endDate: string | null) =>
   api.put<StudentDetail>(`/admin/students/${id}/enrollments/${enrollmentId}/end`, { endDate })
+
+/** 학생 로그인 비밀번호 재발급. 새 6자리 비밀번호를 한 번만 받는다 */
+export const resetStudentPassword = (id: string) =>
+  api.post<StudentCredentials>(`/admin/students/${id}/reset-password`)

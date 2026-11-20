@@ -17,6 +17,7 @@ import {
   Send,
   SendHorizontal,
   SlidersHorizontal,
+  Timer,
   UserCog,
   Users,
   Waypoints,
@@ -82,6 +83,7 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     title: '학습',
     items: [
+      { key: 'myTests', label: '레벨테스트', path: '/s/test', icon: ClipboardCheck, roles: ['student', 'test_taker'], exact: true },
       { key: 'myTimetable', label: '내 시간표', path: '/s/timetable', icon: CalendarRange, roles: STUDENT, exact: true },
       { key: 'myHomework', label: '내 숙제', path: '/s/homework', icon: NotebookPen, roles: STUDENT, exact: true },
       { key: 'myMessages', label: '선생님께 질문', path: '/s/messages', icon: MessageCircleQuestion, roles: STUDENT, exact: true },
@@ -91,6 +93,7 @@ export const NAV_SECTIONS: NavSection[] = [
     title: '설정',
     items: [
       { key: 'classes', label: '반 구성', path: '/admin/classes', icon: Users, roles: ADMIN },
+      { key: 'levelTestSettings', label: '레벨테스트 설정', path: '/admin/settings/level-test', icon: Timer, roles: ADMIN },
       { key: 'aiJobs', label: 'AI 처리 이력', path: '/admin/ai-jobs', icon: Bot, roles: OWNER },
       { key: 'users', label: '계정·권한', path: '/admin/settings/users', icon: UserCog, roles: OWNER },
       { key: 'rules', label: '룰·프롬프트', path: '/admin/settings/rules', icon: SlidersHorizontal, roles: OWNER },

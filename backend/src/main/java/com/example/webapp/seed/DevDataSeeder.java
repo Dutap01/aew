@@ -7,9 +7,13 @@ import static com.example.webapp.jooq.Tables.CONSULT_NOTES;
 import static com.example.webapp.jooq.Tables.CURRICULUM_ITEMS;
 import static com.example.webapp.jooq.Tables.ENROLLMENTS;
 import static com.example.webapp.jooq.Tables.INQUIRIES;
+import static com.example.webapp.jooq.Tables.ITEMS;
 import static com.example.webapp.jooq.Tables.PROFILES;
 import static com.example.webapp.jooq.Tables.STUDENTS;
+import static com.example.webapp.jooq.Tables.TESTS;
+import static com.example.webapp.jooq.Tables.TEST_ITEMS;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
@@ -17,6 +21,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -38,8 +43,12 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.webapp.jooq.enums.AppointmentStatus;
 import com.example.webapp.jooq.enums.InquiryStatus;
 import com.example.webapp.jooq.enums.InquiryType;
+import com.example.webapp.jooq.enums.ItemType;
 import com.example.webapp.jooq.enums.StudentStatus;
+import com.example.webapp.jooq.enums.TestKind;
 import com.example.webapp.jooq.enums.UserRole;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * 개발용 샘플 데이터. DB 에 계정이 하나도 없을 때만 넣는다 (app.seed.enabled=true, prod 프로파일에서는 동작 안 함).
@@ -50,6 +59,7 @@ import com.example.webapp.jooq.enums.UserRole;
  *   <li>상담·레벨테스트 접수 30건 (최근 2주, 상태 여러 가지). 접수 테이블이 비어 있을 때만</li>
  *   <li>레벨별(M1~M3) 회차 커리큘럼 8회차. 커리큘럼이 비어 있을 때만</li>
  *   <li>상담 달력: 예약확정·완료 접수의 일정 + 재원생 학부모 상담 몇 건. 일정이 비어 있을 때만</li>
+ *   <li>임시 레벨테스트 1개 (20문항: 어휘·문법·독해, 객관식·단답형). 테스트가 비어 있을 때만. 발주처 문항이 오면 교체</li>
  * </ul>
  * 다시 만들려면 개발 컨테이너에서 pg_local reset 후 서버를 재시작한다.
  */
@@ -59,6 +69,7 @@ public class DevDataSeeder implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(DevDataSeeder.class);
     private static final String DEV_PASSWORD = "1234";
+    private static final ObjectMapper JSON = new ObjectMapper();
 
     private static final String[] SURNAMES = {"김", "이", "박", "최", "정", "강", "조", "윤", "장", "임", "한", "오", "서", "신", "권"};
     private static final String[] GIVEN = {"민준", "서연", "도윤", "하은", "시우", "지유", "주원", "서윤", "예준", "지아",
@@ -96,6 +107,9 @@ public class DevDataSeeder implements ApplicationRunner {
         }
         if (dsl.fetchCount(CONSULT_APPOINTMENTS) == 0) {
             seedAppointments();
+        }
+        if (dsl.fetchCount(TESTS) == 0) {
+            seedLevelTest();
         }
     }
 
@@ -151,6 +165,72 @@ public class DevDataSeeder implements ApplicationRunner {
             count++;
         }
         log.info("개발용 샘플 상담 일정 {}건 생성", count);
+    }
+
+    /**
+     * 임시 레벨테스트 (중등 공통, 30분). 발주처 문항·정답을 받기 전까지 화면·채점 흐름 확인용.
+     * 객관식 정답은 보기 번호(1부터), 단답형은 허용 답 목록.
+     */
+    private void seedLevelTest() {
+        UUID testId = dsl.insertInto(TESTS)
+                .set(TESTS.KIND, TestKind.level)
+                .set(TESTS.TITLE, "중등 영어 레벨테스트 (임시)")
+                .set(TESTS.TIME_LIMIT_MINUTES, 30)
+                .returning(TESTS.ID).fetchOne(TESTS.ID);
+        String passage1 = "Minji gets up at seven every morning. She has breakfast with her family and walks to school. "
+                + "After school, she goes to the library and reads books about animals. She wants to be a vet in the future.";
+        String passage2 = "Last weekend, Junho visited his grandparents in Busan. It rained all day on Saturday, so they stayed home "
+                + "and made dumplings together. On Sunday, the weather was sunny, and they went to the beach.";
+        Object[][] items = {
+                // 코드, 유형, 영역, 문제, 지문, 보기(객관식), 정답
+                {"LT-V01", "choice", "어휘", "다음 중 'library'의 뜻으로 알맞은 것은?", null, new String[] {"병원", "도서관", "박물관", "우체국"}, 2},
+                {"LT-V02", "choice", "어휘", "다음 중 반대말끼리 짝지어진 것이 아닌 것은?", null, new String[] {"hot - cold", "tall - short", "happy - glad", "early - late"}, 3},
+                {"LT-V03", "choice", "어휘", "빈칸에 알맞은 단어는? I brush my ____ after meals.", null, new String[] {"teeth", "hands", "hair", "shoes"}, 1},
+                {"LT-V04", "choice", "어휘", "'매일'을 뜻하는 표현은?", null, new String[] {"every day", "some day", "one day", "all the day"}, 1},
+                {"LT-V05", "choice", "어휘", "다음 중 직업을 나타내는 단어가 아닌 것은?", null, new String[] {"vet", "pilot", "nurse", "bridge"}, 4},
+                {"LT-V06", "short", "어휘", "다음 뜻에 맞는 영어 단어를 쓰시오. (날씨) 맑은, 화창한", null, null, new String[] {"sunny"}},
+                {"LT-G01", "choice", "문법", "빈칸에 알맞은 것은? She ____ to school every day.", null, new String[] {"go", "goes", "going", "gone"}, 2},
+                {"LT-G02", "choice", "문법", "빈칸에 알맞은 것은? They ____ soccer yesterday.", null, new String[] {"play", "plays", "played", "playing"}, 3},
+                {"LT-G03", "choice", "문법", "다음 중 어법상 올바른 문장은?", null, new String[] {"He don't like milk.", "Do she have a pen?", "I am not hungry.", "They is my friends."}, 3},
+                {"LT-G04", "choice", "문법", "빈칸에 알맞은 것은? I have lived here ____ 2020.", null, new String[] {"for", "since", "at", "during"}, 2},
+                {"LT-G05", "choice", "문법", "빈칸에 알맞은 것은? This box is ____ than that one.", null, new String[] {"heavy", "heavier", "heaviest", "more heavy"}, 2},
+                {"LT-G06", "choice", "문법", "빈칸에 알맞은 것은? I want ____ a doctor.", null, new String[] {"be", "being", "to be", "been"}, 3},
+                {"LT-G07", "short", "문법", "괄호 안의 동사를 알맞은 형태로 쓰시오. Yesterday I (eat) pizza for lunch.", null, null, new String[] {"ate"}},
+                {"LT-G08", "short", "문법", "다음 문장을 부정문으로 바꿀 때 빈칸에 알맞은 말을 쓰시오. He likes cats. → He ____ like cats.", null, null, new String[] {"doesn't", "does not"}},
+                {"LT-R01", "choice", "독해", "Minji는 방과 후에 어디에 가는가?", passage1, new String[] {"집", "도서관", "공원", "학원"}, 2},
+                {"LT-R02", "choice", "독해", "Minji의 장래 희망은?", passage1, new String[] {"선생님", "작가", "수의사", "요리사"}, 3},
+                {"LT-R03", "choice", "독해", "글의 내용과 일치하지 않는 것은?", passage1, new String[] {"7시에 일어난다.", "가족과 아침을 먹는다.", "버스를 타고 학교에 간다.", "동물에 관한 책을 읽는다."}, 3},
+                {"LT-R04", "choice", "독해", "토요일에 Junho가 한 일은?", passage2, new String[] {"해변에 갔다.", "만두를 만들었다.", "부산에 갔다 왔다.", "집을 청소했다."}, 2},
+                {"LT-R05", "choice", "독해", "일요일 날씨는 어땠는가?", passage2, new String[] {"비가 왔다.", "눈이 왔다.", "맑았다.", "흐렸다."}, 3},
+                {"LT-R06", "short", "독해", "Junho가 방문한 사람은 누구인가? 빈칸에 알맞은 영어 한 단어를 쓰시오. (his ____)", passage2, null, new String[] {"grandparents"}},
+        };
+        for (int i = 0; i < items.length; i++) {
+            Object[] it = items[i];
+            boolean choice = it[1].equals("choice");
+            var content = new LinkedHashMap<String, Object>();
+            content.put("stem", it[3]);
+            if (it[4] != null) content.put("passage", it[4]);
+            if (choice) content.put("choices", it[5]);
+            Object answer = choice ? Map.of("choice", it[6]) : Map.of("accepted", it[6]);
+            UUID itemId = dsl.insertInto(ITEMS)
+                    .set(ITEMS.ITEM_CODE, (String) it[0])
+                    .set(ITEMS.TYPE, choice ? ItemType.choice : ItemType.short_)
+                    .set(ITEMS.AREA, (String) it[2])
+                    .set(ITEMS.CONTENT, JSONB.valueOf(toJson(content)))
+                    .set(ITEMS.ANSWER, JSONB.valueOf(toJson(answer)))
+                    .set(ITEMS.POINTS, BigDecimal.valueOf(5))
+                    .returning(ITEMS.ID).fetchOne(ITEMS.ID);
+            dsl.insertInto(TEST_ITEMS).set(TEST_ITEMS.TEST_ID, testId).set(TEST_ITEMS.SEQ, i + 1).set(TEST_ITEMS.ITEM_ID, itemId).execute();
+        }
+        log.info("개발용 임시 레벨테스트 생성 ({}문항, 문항당 5점)", items.length);
+    }
+
+    private static String toJson(Object value) {
+        try {
+            return JSON.writeValueAsString(value);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     private void seedCurriculum() {

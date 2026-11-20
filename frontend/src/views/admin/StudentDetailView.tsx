@@ -2,17 +2,22 @@
 // 반에 넣기·소속 종료는 대표만 (반 배정).
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
-  ArrowLeft, CalendarDays, CirclePlus, ClipboardList, Flag, Headset, LogIn, LogOut, NotebookPen, Pencil, Phone, Repeat, UserPlus,
+  ArrowLeft, CalendarDays, CirclePlus, ClipboardCheck, ClipboardList, Flag, Headset, LogIn, LogOut, NotebookPen, Pencil, Phone, Repeat,
+  UserPlus,
   type LucideIcon,
 } from 'lucide-react'
 import { type FormEvent, type ReactNode, useState } from 'react'
 import { Link, useParams } from 'react-router'
+import { getStudentAttempts } from '@/api/attempts'
 import { getClasses } from '@/api/classes'
 import { errorMessage } from '@/api/errors'
 import { addStudentNote, endEnrollment, enrollStudent, getStudent } from '@/api/students'
 import { Field, INPUT_CLASS } from '@/components/form/Field'
 import { Topbar } from '@/components/layout/Topbar'
+import { StudentAccountRow } from '@/components/student/StudentAccountRow'
 import { StudentFormDialog } from '@/components/student/StudentFormDialog'
+import { AttemptStatusBadge, formatScore } from '@/components/test/AttemptStatusBadge'
+import { IssueAttemptDialog } from '@/components/test/IssueAttemptDialog'
 import { Card } from '@/components/ui/Card'
 import { Dialog } from '@/components/ui/Dialog'
 import { StudentStatusBadge } from '@/components/ui/StudentStatusBadge'
@@ -58,6 +63,7 @@ export function StudentDetailView() {
         <div className="flex min-w-0 flex-col gap-4">
           <ProfileCard s={s} onEdit={() => setEditing(true)} />
           <ClassesCard s={s} isOwner={isOwner} onUpdated={onUpdated} />
+          <LevelTestCard s={s} />
         </div>
         <div className="flex min-w-0 flex-col gap-4">
           <TimelineCard s={s} onUpdated={onUpdated} />
@@ -113,9 +119,7 @@ function ProfileCard({ s, onEdit }: { s: StudentDetail; onEdit: () => void }) {
           ) : <span className="text-xs text-wait">없음 · 안내 문자를 보낼 수 없습니다</span>}
         </dd>
         <dt className="text-muted">학생 계정</dt>
-        <dd className="text-ink">
-          {s.loginId ? <span className="font-mono text-xs">{s.loginId}</span> : <span className="text-xs text-muted">아직 발급 안 함</span>}
-        </dd>
+        <dd className="text-ink"><StudentAccountRow studentId={s.id} studentName={s.name} loginId={s.loginId} /></dd>
         <dt className="text-muted">메모</dt>
         <dd className="whitespace-pre-wrap text-ink">{s.memo ?? <Empty />}</dd>
       </dl>
@@ -292,11 +296,54 @@ function DialogButtons({ onCancel, disabled, label, danger }: { onCancel: () => 
   )
 }
 
+/** 이 학생의 레벨테스트 + 발급 */
+function LevelTestCard({ s }: { s: StudentDetail }) {
+  const [issuing, setIssuing] = useState(false)
+  const attempts = useQuery({ queryKey: ['student-attempts', s.id], queryFn: () => getStudentAttempts(s.id) })
+  return (
+    <Card hoverLift={false} index={2}>
+      <CardTitle right={s.status !== 'withdrawn' && (
+        <button type="button" onClick={() => setIssuing(true)} className={cn(SMALL_BUTTON, 'bg-navy text-white hover:opacity-90')}>
+          <ClipboardCheck className="size-3.5" aria-hidden /> 레벨테스트 발급
+        </button>
+      )}>레벨테스트</CardTitle>
+      {attempts.isError ? (
+        <p role="alert" className="text-xs text-alert">{errorMessage(attempts.error)}</p>
+      ) : !attempts.data ? (
+        <div className="h-12 animate-pulse rounded-xl bg-track" />
+      ) : attempts.data.length === 0 ? (
+        <p className="text-xs text-muted">아직 응시 기록이 없습니다.</p>
+      ) : (
+        <ul className="space-y-2">
+          {attempts.data.map((a) => (
+            <li key={a.id}>
+              <Link to={`/admin/level-tests/${a.id}`} className="flex items-center gap-3 rounded-xl bg-panel px-3 py-2.5 hover:bg-brand-50">
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-bold text-ink">{a.testTitle}</span>
+                  <span className="block text-xs text-muted tabular-nums">
+                    {a.submittedAt ? `${formatDateTime(a.submittedAt)} 제출` : `${formatDateTime(a.issuedAt)} 발급`}
+                  </span>
+                </span>
+                {(a.status === 'graded' || a.status === 'submitted') && (
+                  <span className="text-sm font-bold text-ink tabular-nums">{formatScore(a.score, a.maxScore)}</span>
+                )}
+                <AttemptStatusBadge status={a.status} />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+      <IssueAttemptDialog open={issuing} student={{ id: s.id, name: s.name }} onClose={() => setIssuing(false)} />
+    </Card>
+  )
+}
+
 const KIND: Record<TimelineKind, { icon: LucideIcon; tone: string }> = {
   created: { icon: UserPlus, tone: 'bg-brand-50 text-brand-700' },
   inquiry: { icon: Headset, tone: 'bg-sky-soft text-navy' },
   note: { icon: NotebookPen, tone: 'bg-track text-ink' },
   appointment: { icon: CalendarDays, tone: 'bg-grape-50 text-grape' },
+  level_test: { icon: ClipboardCheck, tone: 'bg-navy text-white' },
   enrollment_start: { icon: LogIn, tone: 'bg-brand-50 text-brand-700' },
   enrollment_end: { icon: LogOut, tone: 'bg-track text-muted' },
   status_change: { icon: Repeat, tone: 'bg-wait/15 text-[#a16207]' },
@@ -345,9 +392,8 @@ function TimelineCard({ s, onUpdated }: { s: StudentDetail; onUpdated: (s: Stude
 
 function TimelineItem({ ev, upcoming }: { ev: TimelineEvent; upcoming: boolean }) {
   const { icon: Icon, tone } = KIND[ev.kind]
-  const title = ev.kind === 'inquiry' && ev.refId
-    ? <Link to={`/admin/inquiries/${ev.refId}`} className="hover:text-brand-700 hover:underline">{ev.title}</Link>
-    : ev.title
+  const href = !ev.refId ? null : ev.kind === 'inquiry' ? `/admin/inquiries/${ev.refId}` : ev.kind === 'level_test' ? `/admin/level-tests/${ev.refId}` : null
+  const title = href ? <Link to={href} className="hover:text-brand-700 hover:underline">{ev.title}</Link> : ev.title
   // 반 시작·종료는 날짜만 의미가 있다
   const dateOnly = ev.kind === 'enrollment_start' || ev.kind === 'enrollment_end'
 

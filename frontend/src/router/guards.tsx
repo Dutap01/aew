@@ -22,9 +22,10 @@ export function RequireAuth({ roles, children }: { roles?: readonly Role[]; chil
 }
 
 /** 학생 전용 (대표도 학생 화면은 볼 수 없다: 학생 본인 데이터 기준 화면이라서) */
-export function RequireStudent() {
+/** 학생 화면. allowTestTaker: 레벨테스트 전용 계정도 들어올 수 있는 화면 (레벨테스트 응시만) */
+export function RequireStudent({ allowTestTaker = false }: { allowTestTaker?: boolean }) {
   const user = useAuthStore((s) => s.user)
-  if (user && user.role !== 'student') return <ForbiddenView />
+  if (user && user.role !== 'student' && !(allowTestTaker && user.role === 'test_taker')) return <ForbiddenView />
   return <RequireAuth />
 }
 

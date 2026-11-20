@@ -4,6 +4,22 @@
  */
 
 export interface paths {
+    "/api/s/attempts/{id}/answers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["answer"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/students/{id}": {
         parameters: {
             query?: never;
@@ -36,6 +52,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/settings/level-test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get"];
+        put: operations["update_1"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/inquiries/{id}/status": {
         parameters: {
             query?: never;
@@ -60,7 +92,23 @@ export interface paths {
             cookie?: never;
         };
         get: operations["detail_1"];
-        put: operations["update_1"];
+        put: operations["update_2"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/attempts/{id}/items/{itemId}/score": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["manualScore"];
         post?: never;
         delete?: never;
         options?: never;
@@ -76,7 +124,7 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        put: operations["update_2"];
+        put: operations["update_3"];
         post?: never;
         delete?: never;
         options?: never;
@@ -94,6 +142,38 @@ export interface paths {
         get?: never;
         put: operations["changeStatus_1"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/s/attempts/{id}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["submit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/s/attempts/{id}/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["start"];
         delete?: never;
         options?: never;
         head?: never;
@@ -126,6 +206,22 @@ export interface paths {
         get: operations["search"];
         put?: never;
         post: operations["create_1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/students/{id}/reset-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["resetPassword"];
         delete?: never;
         options?: never;
         head?: never;
@@ -228,6 +324,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/attempts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["search_1"];
+        put?: never;
+        post: operations["issue"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/attempts/{id}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["forceSubmit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/attempts/{id}/account": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["reissueAccount"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/appointments": {
         parameters: {
             query?: never;
@@ -268,6 +412,38 @@ export interface paths {
             cookie?: never;
         };
         get: operations["mine_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/s/attempts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["mine_2"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/s/attempts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -372,6 +548,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/tests/level": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["levelTests"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/students/{studentId}/attempts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["byStudent"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/settings/level-test/accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["activeAccounts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/notifications": {
         parameters: {
             query?: never;
@@ -379,7 +603,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["search_1"];
+        get: operations["search_2"];
         put?: never;
         post?: never;
         delete?: never;
@@ -411,7 +635,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["search_2"];
+        get: operations["search_3"];
         put?: never;
         post?: never;
         delete?: never;
@@ -484,6 +708,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/attempts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["detail_3"];
+        put?: never;
+        post?: never;
+        delete: operations["cancel"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/attempts/counts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["counts_2"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/appointments/counselors": {
         parameters: {
             query?: never;
@@ -504,6 +760,13 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AnswerRequest: {
+            /** Format: uuid */
+            itemId: string;
+            /** Format: int32 */
+            choice?: number | null;
+            text?: string | null;
+        };
         StudentUpsertRequest: {
             name: string;
             school?: string | null;
@@ -558,7 +821,7 @@ export interface components {
         };
         TimelineEvent: {
             /** @enum {string} */
-            kind: "created" | "inquiry" | "note" | "appointment" | "enrollment_start" | "enrollment_end" | "status_change";
+            kind: "created" | "inquiry" | "note" | "appointment" | "level_test" | "enrollment_start" | "enrollment_end" | "status_change";
             /** Format: date-time */
             at: string;
             title: string;
@@ -570,6 +833,10 @@ export interface components {
         EnrollmentEndRequest: {
             /** Format: date */
             endDate?: string | null;
+        };
+        LevelTestSettings: {
+            /** Format: int32 */
+            accountMinutes: number;
         };
         InquiryStatusChangeRequest: {
             /** @enum {string} */
@@ -598,6 +865,34 @@ export interface components {
             studentName: string | null;
             studentCode: string | null;
         };
+        AttemptSummary: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            studentId: string;
+            studentCode: string;
+            studentName: string;
+            takerLoginId: string | null;
+            /** Format: date-time */
+            takerExpiresAt: string | null;
+            grade: string | null;
+            /** Format: uuid */
+            testId: string;
+            testTitle: string;
+            /** @enum {string} */
+            status: "issued" | "in_progress" | "submitted" | "graded";
+            score: number | null;
+            maxScore: number | null;
+            /** Format: uuid */
+            inquiryId: string | null;
+            issuedByName: string | null;
+            /** Format: date-time */
+            issuedAt: string;
+            /** Format: date-time */
+            startedAt: string | null;
+            /** Format: date-time */
+            submittedAt: string | null;
+        };
         InquiryDetail: {
             /** Format: uuid */
             id: string;
@@ -621,6 +916,7 @@ export interface components {
             similarStudents: components["schemas"]["LinkedStudent"][];
             notes: components["schemas"]["InquiryNote"][];
             appointments: components["schemas"]["AppointmentResponse"][];
+            levelTests: components["schemas"]["AttemptSummary"][];
         };
         InquiryNote: {
             /** Format: uuid */
@@ -639,6 +935,7 @@ export interface components {
             grade: string | null;
             /** @enum {string} */
             status: "consulting" | "test_scheduled" | "enrolled" | "paused" | "withdrawn";
+            loginId: string | null;
         };
         PreferredSlot: {
             /** Format: date */
@@ -688,6 +985,46 @@ export interface components {
             /** Format: int32 */
             studentCount: number;
         };
+        ManualScoreRequest: {
+            score: number;
+        };
+        AreaScore: {
+            area: string;
+            score: number;
+            maxScore: number;
+            /** Format: int32 */
+            correct: number;
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            pending: number;
+        };
+        AttemptDetail: {
+            summary: components["schemas"]["AttemptSummary"];
+            /** Format: int32 */
+            timeLimitMinutes: number | null;
+            ruleVersion: string | null;
+            areas: components["schemas"]["AreaScore"][];
+            items: components["schemas"]["ItemResult"][];
+        };
+        ItemResult: {
+            /** Format: int32 */
+            seq: number;
+            /** Format: uuid */
+            itemId: string;
+            itemCode: string;
+            /** @enum {string} */
+            type: "choice" | "short" | "essay";
+            area: string;
+            stem: string;
+            passage: string | null;
+            choices: string[];
+            correctAnswer: string;
+            studentAnswer: string | null;
+            isCorrect: boolean | null;
+            score: number | null;
+            points: number;
+        };
         AppointmentUpdateRequest: {
             title: string;
             /** Format: date-time */
@@ -701,6 +1038,39 @@ export interface components {
         AppointmentStatusRequest: {
             /** @enum {string} */
             status: "scheduled" | "done" | "canceled" | "no_show";
+        };
+        Question: {
+            /** Format: int32 */
+            seq: number;
+            /** Format: uuid */
+            itemId: string;
+            /** @enum {string} */
+            type: "choice" | "short" | "essay";
+            area: string;
+            stem: string;
+            passage: string | null;
+            choices: string[];
+            /** Format: int32 */
+            savedChoice: number | null;
+            savedText: string | null;
+        };
+        StudentAttempt: {
+            /** Format: uuid */
+            id: string;
+            testTitle: string;
+            /** @enum {string} */
+            status: "issued" | "in_progress" | "submitted" | "graded";
+            /** Format: int32 */
+            timeLimitMinutes: number | null;
+            /** Format: int32 */
+            itemCount: number;
+            /** Format: date-time */
+            startedAt: string | null;
+            /** Format: date-time */
+            deadline: string | null;
+            /** Format: date-time */
+            submittedAt: string | null;
+            items: components["schemas"]["Question"][];
         };
         InquiryCreateRequest: {
             /** @enum {string} */
@@ -718,6 +1088,10 @@ export interface components {
             /** Format: uuid */
             id: string;
         };
+        StudentCredentials: {
+            loginId: string;
+            initialPassword: string | null;
+        };
         NoteCreateRequest: {
             content: string;
         };
@@ -730,6 +1104,21 @@ export interface components {
         LinkStudentRequest: {
             /** Format: uuid */
             existingStudentId?: string | null;
+        };
+        AttemptIssueRequest: {
+            /** Format: uuid */
+            studentId: string;
+            /** Format: uuid */
+            testId: string;
+            /** Format: uuid */
+            inquiryId?: string | null;
+        };
+        AttemptIssuedResponse: {
+            attempt: components["schemas"]["AttemptSummary"];
+            loginId: string;
+            password: string;
+            /** Format: date-time */
+            expiresAt: string;
         };
         AppointmentCreateRequest: {
             /** Format: uuid */
@@ -809,14 +1198,24 @@ export interface components {
             loginId: string;
             name: string;
             /** @enum {string} */
-            role: "owner" | "counselor" | "teacher" | "student";
+            role: "owner" | "counselor" | "teacher" | "student" | "test_taker";
         };
         StaffOption: {
             /** Format: uuid */
             id: string;
             name: string;
             /** @enum {string} */
-            role: "owner" | "counselor" | "teacher" | "student";
+            role: "owner" | "counselor" | "teacher" | "student" | "test_taker";
+        };
+        TestOption: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            level: string | null;
+            /** Format: int32 */
+            timeLimitMinutes: number | null;
+            /** Format: int32 */
+            itemCount: number;
         };
         PageResponseStudentSummary: {
             items: components["schemas"]["StudentSummary"][];
@@ -838,6 +1237,21 @@ export interface components {
             status: "consulting" | "test_scheduled" | "enrolled" | "paused" | "withdrawn";
             parentPhone: string | null;
             classes: string[];
+        };
+        TestAccountInfo: {
+            /** Format: uuid */
+            attemptId: string;
+            loginId: string;
+            /** Format: uuid */
+            studentId: string;
+            studentName: string;
+            studentCode: string;
+            /** @enum {string} */
+            status: "issued" | "in_progress" | "submitted" | "graded";
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            expiresAt: string;
         };
         NotificationResponse: {
             /** Format: uuid */
@@ -922,6 +1336,25 @@ export interface components {
             /** Format: int64 */
             canceled: number;
         };
+        PageResponseAttemptSummary: {
+            items: components["schemas"]["AttemptSummary"][];
+            /** Format: int64 */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            size: number;
+        };
+        AttemptCounts: {
+            /** Format: int32 */
+            issued: number;
+            /** Format: int32 */
+            inProgress: number;
+            /** Format: int32 */
+            submitted: number;
+            /** Format: int32 */
+            graded: number;
+        };
     };
     responses: never;
     parameters: never;
@@ -931,6 +1364,30 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    answer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnswerRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     detail: {
         parameters: {
             query?: never;
@@ -1006,6 +1463,50 @@ export interface operations {
             };
         };
     };
+    get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LevelTestSettings"];
+                };
+            };
+        };
+    };
+    update_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LevelTestSettings"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LevelTestSettings"];
+                };
+            };
+        };
+    };
     changeStatus: {
         parameters: {
             query?: never;
@@ -1054,7 +1555,7 @@ export interface operations {
             };
         };
     };
-    update_1: {
+    update_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -1080,7 +1581,34 @@ export interface operations {
             };
         };
     };
-    update_2: {
+    manualScore: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ManualScoreRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AttemptDetail"];
+                };
+            };
+        };
+    };
+    update_3: {
         parameters: {
             query?: never;
             header?: never;
@@ -1128,6 +1656,50 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["AppointmentResponse"];
+                };
+            };
+        };
+    };
+    submit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["StudentAttempt"];
+                };
+            };
+        };
+    };
+    start: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["StudentAttempt"];
                 };
             };
         };
@@ -1201,6 +1773,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["StudentDetail"];
+                };
+            };
+        };
+    };
+    resetPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["StudentCredentials"];
                 };
             };
         };
@@ -1375,6 +1969,99 @@ export interface operations {
             };
         };
     };
+    search_1: {
+        parameters: {
+            query?: {
+                q?: string;
+                status?: "issued" | "in_progress" | "submitted" | "graded";
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PageResponseAttemptSummary"];
+                };
+            };
+        };
+    };
+    issue: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttemptIssueRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AttemptIssuedResponse"];
+                };
+            };
+        };
+    };
+    forceSubmit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AttemptDetail"];
+                };
+            };
+        };
+    };
+    reissueAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AttemptIssuedResponse"];
+                };
+            };
+        };
+    };
     range: {
         parameters: {
             query: {
@@ -1463,6 +2150,48 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["Timetable"];
+                };
+            };
+        };
+    };
+    mine_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["StudentAttempt"][];
+                };
+            };
+        };
+    };
+    get_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["StudentAttempt"];
                 };
             };
         };
@@ -1597,7 +2326,69 @@ export interface operations {
             };
         };
     };
-    search_1: {
+    levelTests: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TestOption"][];
+                };
+            };
+        };
+    };
+    byStudent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                studentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AttemptSummary"][];
+                };
+            };
+        };
+    };
+    activeAccounts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TestAccountInfo"][];
+                };
+            };
+        };
+    };
+    search_2: {
         parameters: {
             query?: {
                 q?: string;
@@ -1644,7 +2435,7 @@ export interface operations {
             };
         };
     };
-    search_2: {
+    search_3: {
         parameters: {
             query?: {
                 q?: string;
@@ -1751,6 +2542,70 @@ export interface operations {
                 };
                 content: {
                     "*/*": string[];
+                };
+            };
+        };
+    };
+    detail_3: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AttemptDetail"];
+                };
+            };
+        };
+    };
+    cancel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    counts_2: {
+        parameters: {
+            query?: {
+                q?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AttemptCounts"];
                 };
             };
         };

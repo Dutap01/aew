@@ -1,5 +1,6 @@
 package com.example.webapp.repository;
 
+import static com.example.webapp.jooq.Tables.ATTEMPTS;
 import static com.example.webapp.jooq.Tables.AUDIT_LOGS;
 import static com.example.webapp.jooq.Tables.CLASSES;
 import static com.example.webapp.jooq.Tables.CONSULT_APPOINTMENTS;
@@ -8,6 +9,7 @@ import static com.example.webapp.jooq.Tables.ENROLLMENTS;
 import static com.example.webapp.jooq.Tables.INQUIRIES;
 import static com.example.webapp.jooq.Tables.PROFILES;
 import static com.example.webapp.jooq.Tables.STUDENTS;
+import static com.example.webapp.jooq.Tables.TESTS;
 import static org.jooq.impl.DSL.arrayAgg;
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.noCondition;
@@ -36,6 +38,7 @@ import com.example.webapp.dto.student.StudentDetail;
 import com.example.webapp.dto.student.StudentDetail.TimelineEvent;
 import com.example.webapp.dto.student.StudentDetail.TimelineKind;
 import com.example.webapp.jooq.enums.AppointmentStatus;
+import com.example.webapp.jooq.enums.AttemptStatus;
 import com.example.webapp.jooq.enums.InquiryType;
 import com.example.webapp.jooq.enums.StudentStatus;
 import com.example.webapp.jooq.tables.records.StudentsRecord;
@@ -157,6 +160,24 @@ public class StudentRepository {
                         dsl.select(INQUIRIES.ID).from(INQUIRIES).where(INQUIRIES.STUDENT_ID.eq(id)))))
                 .forEach(r -> events.add(new TimelineEvent(TimelineKind.appointment, r.value2(),
                         r.value3() + " · " + appointmentLabel(r.value4()), r.value5(), r.value6(), r.value1())));
+
+        // 레벨테스트: 발급, 제출(점수)
+        var issuer = PROFILES.as("issuer");
+        dsl.select(ATTEMPTS.ID, ATTEMPTS.CREATED_AT, ATTEMPTS.SUBMITTED_AT, ATTEMPTS.STATUS, ATTEMPTS.SCORE, ATTEMPTS.MAX_SCORE,
+                        TESTS.TITLE, issuer.NAME)
+                .from(ATTEMPTS).join(TESTS).on(TESTS.ID.eq(ATTEMPTS.TEST_ID))
+                .leftJoin(issuer).on(issuer.ID.eq(ATTEMPTS.ISSUED_BY))
+                .where(ATTEMPTS.STUDENT_ID.eq(id))
+                .forEach(r -> {
+                    events.add(new TimelineEvent(TimelineKind.level_test, r.value2(), r.value7() + " 발급", null, r.value8(), r.value1()));
+                    if (r.value3() != null) {
+                        String result = r.value4() == AttemptStatus.graded
+                                ? r.value5().stripTrailingZeros().toPlainString() + " / " + r.value6().stripTrailingZeros().toPlainString() + "점"
+                                : "서술형 채점 대기";
+                        events.add(new TimelineEvent(TimelineKind.level_test, r.value3(), r.value7() + " 제출 · " + result,
+                                null, null, r.value1()));
+                    }
+                });
 
         dsl.select(ENROLLMENTS.START_DATE, ENROLLMENTS.END_DATE, CLASSES.NAME, ENROLLMENTS.CREATED_AT)
                 .from(ENROLLMENTS).join(CLASSES).on(CLASSES.ID.eq(ENROLLMENTS.CLASS_ID))

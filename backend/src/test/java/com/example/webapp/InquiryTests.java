@@ -122,6 +122,7 @@ class InquiryTests {
         assertThat(detail.at("/student/name").asText()).isEqualTo("김신청");
         assertThat(detail.at("/student/status").asText()).isEqualTo("test_scheduled");
         assertThat(detail.at("/student/studentCode").asText()).startsWith("S-");
+        assertThat(detail.at("/student/loginId").isNull()).isTrue(); // 레벨테스트 발급 전에는 계정 없음
 
         var student = dsl.selectFrom(STUDENTS).where(STUDENTS.ID.eq(UUID.fromString(detail.at("/student/id").asText()))).fetchOne();
         assertThat(student.getParentPhone()).isEqualTo("010-1234-5678");

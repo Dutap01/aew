@@ -1,6 +1,6 @@
 // 접수 상세 (대표·상담실장): 신청 내용, 상태 처리, 상담 기록, 학생 등록·기존 학생 연결
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, CalendarPlus, Check, LoaderCircle, Phone, UserPlus, Link2 } from 'lucide-react'
+import { ArrowLeft, CalendarPlus, Check, ClipboardCheck, LoaderCircle, Phone, UserPlus, Link2 } from 'lucide-react'
 import { type FormEvent, type ReactNode, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { errorMessage } from '@/api/errors'
@@ -9,6 +9,9 @@ import { AppointmentDetailDialog } from '@/components/appointment/AppointmentDet
 import { type AppointmentFormTarget, AppointmentFormDialog } from '@/components/appointment/AppointmentFormDialog'
 import { AppointmentStatusBadge } from '@/components/appointment/AppointmentStatusBadge'
 import { Topbar } from '@/components/layout/Topbar'
+import { AttemptStatusBadge, formatScore } from '@/components/test/AttemptStatusBadge'
+import { TestAccountRow } from '@/components/test/TestAccountRow'
+import { IssueAttemptDialog } from '@/components/test/IssueAttemptDialog'
 import { Card } from '@/components/ui/Card'
 import { INQUIRY_STATUS_LABEL, INQUIRY_TYPE_LABEL, InquiryStatusBadge } from '@/components/ui/InquiryBadges'
 import { StudentStatusBadge } from '@/components/ui/StudentStatusBadge'
@@ -259,13 +262,43 @@ function StudentCard({ d, onUpdated }: { d: InquiryDetail; onUpdated: (d: Inquir
     onSuccess: onUpdated,
   })
 
+  const [issuing, setIssuing] = useState(false)
+
   if (d.student) {
+    const canIssue = d.type === 'level_test' && d.status !== 'canceled' && d.student.status !== 'withdrawn'
     return (
       <Card hoverLift={false} index={2}>
         <CardTitle>학생</CardTitle>
         <StudentRow s={d.student} action={
           <Link to={`/admin/students/${d.student.id}`} className="text-xs font-semibold text-brand-700 hover:underline">학생 보기</Link>
         } />
+        {d.levelTests.length > 0 && (
+          <ul className="mt-3 space-y-2">
+            {d.levelTests.map((a) => (
+              <li key={a.id} className="rounded-xl bg-panel px-3 py-2.5">
+                <div className="mb-1.5 flex items-center gap-2">
+                  <Link to={`/admin/level-tests/${a.id}`} className="min-w-0 flex-1 truncate text-sm font-bold text-ink hover:text-brand-700 hover:underline">{a.testTitle}</Link>
+                  {(a.status === 'graded' || a.status === 'submitted') && <span className="text-xs font-bold text-ink tabular-nums">{formatScore(a.score, a.maxScore)}</span>}
+                  <AttemptStatusBadge status={a.status} />
+                </div>
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <span className="text-xs text-muted">응시 계정</span>
+                  <TestAccountRow a={a} />
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+        {canIssue && (
+          <>
+            <button type="button" onClick={() => setIssuing(true)}
+              className="mt-3 flex h-10 w-full items-center justify-center gap-1.5 rounded-xl bg-navy text-sm font-bold text-white hover:opacity-90">
+              <ClipboardCheck className="size-4" aria-hidden /> 레벨테스트 발급
+            </button>
+            <p className="mt-1.5 text-[11px] text-muted">학생이 학원에 오면 발급하세요. 레벨테스트 전용 계정이 만들어지고 정해진 시간 뒤에는 로그인할 수 없습니다.</p>
+            <IssueAttemptDialog open={issuing} student={{ id: d.student.id, name: d.student.name }} inquiryId={d.id} onClose={() => setIssuing(false)} />
+          </>
+        )}
       </Card>
     )
   }

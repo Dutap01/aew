@@ -41,7 +41,7 @@ public record StudentDetail(
             @Schema(types = {"string", "null"}, format = "date") LocalDate endDate) {
     }
 
-    public enum TimelineKind { created, inquiry, note, appointment, enrollment_start, enrollment_end, status_change }
+    public enum TimelineKind { created, inquiry, note, appointment, level_test, enrollment_start, enrollment_end, status_change }
 
     /** refId: 접수·일정 id 처럼 화면에서 이동할 대상 (없으면 null) */
     public record TimelineEvent(

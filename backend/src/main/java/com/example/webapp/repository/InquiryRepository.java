@@ -112,9 +112,10 @@ public class InquiryRepository {
     }
 
     public Optional<InquiryDetail.LinkedStudent> student(UUID studentId) {
-        return dsl.select(STUDENTS.ID, STUDENTS.STUDENT_CODE, STUDENTS.NAME, STUDENTS.SCHOOL, STUDENTS.GRADE, STUDENTS.STATUS)
-                .from(STUDENTS).where(STUDENTS.ID.eq(studentId))
-                .fetchOptional(r -> new InquiryDetail.LinkedStudent(r.value1(), r.value2(), r.value3(), r.value4(), r.value5(), r.value6()));
+        return dsl.select(STUDENTS.ID, STUDENTS.STUDENT_CODE, STUDENTS.NAME, STUDENTS.SCHOOL, STUDENTS.GRADE, STUDENTS.STATUS, PROFILES.LOGIN_ID)
+                .from(STUDENTS).leftJoin(PROFILES).on(PROFILES.ID.eq(STUDENTS.PROFILE_ID))
+                .where(STUDENTS.ID.eq(studentId))
+                .fetchOptional(r -> new InquiryDetail.LinkedStudent(r.value1(), r.value2(), r.value3(), r.value4(), r.value5(), r.value6(), r.value7()));
     }
 
     /** 같은 학생으로 보이는 기존 학생: 학부모 연락처(숫자) 일치, 또는 이름 + 학교 일치. 최대 5명 */
@@ -123,11 +124,11 @@ public class InquiryRepository {
         Condition samePhone = regexpReplaceAll(STUDENTS.PARENT_PHONE, "\\D", "").eq(digits);
         Condition sameNameSchool = STUDENTS.NAME.eq(inquiry.getStudentName())
                 .and(inquiry.getSchool() == null ? noCondition() : STUDENTS.SCHOOL.eq(inquiry.getSchool()));
-        return dsl.select(STUDENTS.ID, STUDENTS.STUDENT_CODE, STUDENTS.NAME, STUDENTS.SCHOOL, STUDENTS.GRADE, STUDENTS.STATUS)
-                .from(STUDENTS)
+        return dsl.select(STUDENTS.ID, STUDENTS.STUDENT_CODE, STUDENTS.NAME, STUDENTS.SCHOOL, STUDENTS.GRADE, STUDENTS.STATUS, PROFILES.LOGIN_ID)
+                .from(STUDENTS).leftJoin(PROFILES).on(PROFILES.ID.eq(STUDENTS.PROFILE_ID))
                 .where(samePhone.or(sameNameSchool))
                 .orderBy(STUDENTS.NAME.eq(inquiry.getStudentName()).desc(), STUDENTS.STUDENT_CODE)
                 .limit(5)
-                .fetch(r -> new InquiryDetail.LinkedStudent(r.value1(), r.value2(), r.value3(), r.value4(), r.value5(), r.value6()));
+                .fetch(r -> new InquiryDetail.LinkedStudent(r.value1(), r.value2(), r.value3(), r.value4(), r.value5(), r.value6(), r.value7()));
     }
 }

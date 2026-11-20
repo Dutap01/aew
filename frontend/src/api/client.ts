@@ -12,9 +12,9 @@ function csrfToken(): string | null {
   return match ? decodeURIComponent(match[1]) : null
 }
 
-/** 로그인 후 요청이 401 이면(세션 만료) 호출할 함수. authStore 가 등록한다 */
-let onUnauthorized: (() => void) | null = null
-export function setUnauthorizedHandler(handler: () => void) {
+/** 로그인 후 요청이 401 이면(세션 만료) 호출할 함수. 서버가 이유(message)를 주면 함께 넘긴다. authStore 가 등록한다 */
+let onUnauthorized: ((message: string | null) => void) | null = null
+export function setUnauthorizedHandler(handler: (message: string | null) => void) {
   onUnauthorized = handler
 }
 
@@ -71,7 +71,10 @@ export async function request<T>(
   }
 
   const data = await parseBody(response)
-  if (response.status === 401 && !skipUnauthorizedHandler) onUnauthorized?.()
+  if (response.status === 401 && !skipUnauthorizedHandler) {
+    const message = data && typeof data === 'object' && 'message' in data && typeof data.message === 'string' ? data.message : null
+    onUnauthorized?.(message)
+  }
   if (!response.ok) {
     throw new ApiError(response.status, `API 오류 (${response.status}) ${method} ${path}`, data)
   }

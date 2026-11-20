@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.example.webapp.dto.appointment.AppointmentResponse;
+import com.example.webapp.dto.test.AttemptSummary;
 import com.example.webapp.jooq.enums.InquiryStatus;
 import com.example.webapp.jooq.enums.InquiryType;
 import com.example.webapp.jooq.enums.StudentStatus;
@@ -32,12 +33,16 @@ public record InquiryDetail(
         List<LinkedStudent> similarStudents,
         List<InquiryNote> notes,
         /** 이 접수로 잡은 상담·레벨테스트 일정 (시간순) */
-        List<AppointmentResponse> appointments) {
+        List<AppointmentResponse> appointments,
+        /** 이 접수로 발급한 레벨테스트 (최근 먼저) */
+        List<AttemptSummary> levelTests) {
 
     public record LinkedStudent(UUID id, String studentCode, String name,
             @Schema(types = {"string", "null"}) String school,
             @Schema(types = {"string", "null"}) String grade,
-            StudentStatus status) {
+            StudentStatus status,
+            /** 학생 로그인 아이디 (계정 발급 전에는 null) */
+            @Schema(types = {"string", "null"}) String loginId) {
     }
 
     public record InquiryNote(UUID id, String content, String authorName, OffsetDateTime createdAt) {

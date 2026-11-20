@@ -4,11 +4,13 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import org.jooq.DSLContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.AccountExpiredException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -44,7 +46,7 @@ import jakarta.servlet.http.HttpServletResponse;
  *   <li>로그인: POST /api/auth/login (form: loginId, password) → 200 MeResponse / 401</li>
  *   <li>로그아웃: POST /api/auth/logout → 204</li>
  *   <li>CSRF: XSRF-TOKEN 쿠키를 읽어 X-XSRF-TOKEN 헤더로 보낸다 (React 같은 SPA 방식)</li>
- *   <li>/api/admin/** 대표·상담실장 (반 구성 수정·반 배정은 대표만), /api/t/** 강사·대표, /api/s/** 학생, /api/public/**·/api/r/** 로그인 없이</li>
+ *   <li>/api/admin/** 대표·상담실장 (반 구성 수정·반 배정은 대표만), /api/s/attempts/** 학생·레벨테스트 계정, /api/t/** 강사·대표, /api/s/** 학생, /api/public/**·/api/r/** 로그인 없이</li>
  * </ul>
  * 화면(React 라우터)의 가드는 편의용이고 실제 보호는 여기서 한다.
  * "담당 반만", "본인만" 같은 행 단위 검사는 서비스 계층에서 한다.
@@ -65,13 +67,14 @@ public class SecurityConfig {
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, ObjectMapper objectMapper,
-            ProfileUserDetailsService users, SecurityContextRepository contextRepository) throws Exception {
+            ProfileUserDetailsService users, SecurityContextRepository contextRepository, DSLContext dsl) throws Exception {
         http
             .securityContext(sc -> sc.securityContextRepository(contextRepository))
             .csrf(csrf -> csrf
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                 .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler()))
             .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
+            .addFilterAfter(new TestAccountExpiryFilter(dsl, objectMapper), CsrfCookieFilter.class)
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/health", "/actuator/health/**").permitAll()
                 .requestMatchers("/api/public/**", "/api/r/**").permitAll()
@@ -83,6 +86,8 @@ public class SecurityConfig {
                         "/api/admin/students/*/enrollments/**").hasRole("OWNER")
                 .requestMatchers("/api/admin/**").hasAnyRole("OWNER", "COUNSELOR")
                 .requestMatchers("/api/t/**").hasAnyRole("TEACHER", "OWNER")
+                // 레벨테스트 응시는 학생 정식 계정과 레벨테스트 전용 계정 모두. 나머지 학생 화면은 정식 계정만
+                .requestMatchers("/api/s/attempts", "/api/s/attempts/**").hasAnyRole("STUDENT", "TEST_TAKER")
                 .requestMatchers("/api/s/**").hasRole("STUDENT")
                 .requestMatchers("/api/**", "/actuator/**").authenticated()
                 .anyRequest().permitAll()) // React 정적 파일·화면 경로
@@ -104,7 +109,9 @@ public class SecurityConfig {
                     writeJson(res, objectMapper, HttpStatus.OK, MeResponse.of(user));
                 })
                 .failureHandler((req, res, ex) -> writeJson(res, objectMapper, HttpStatus.UNAUTHORIZED,
-                        Map.of("message", ex instanceof DisabledException
+                        Map.of("message", ex instanceof AccountExpiredException
+                                ? TestAccountExpiryFilter.EXPIRED_MESSAGE
+                                : ex instanceof DisabledException
                                 ? "사용이 중지된 계정입니다."
                                 : "아이디 또는 비밀번호가 올바르지 않습니다."))))
             .logout(logout -> logout

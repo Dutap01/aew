@@ -9,22 +9,26 @@ type AuthStatus = 'unknown' | 'authenticated' | 'anonymous'
 interface AuthState {
   status: AuthStatus // unknown: 앱 시작 직후 아직 확인 전
   user: Me | null
+  /** 로그인 화면에 보여줄 안내 (예: 레벨테스트 계정 사용 시간 끝남) */
+  notice: string | null
   /** 앱 시작 시 1회: 세션이 살아 있는지 확인 */
   bootstrap: () => Promise<void>
   login: (req: LoginRequest) => Promise<Me>
   logout: () => Promise<void>
   /** API 가 401 을 돌려주면(세션 만료) 호출 */
-  clear: () => void
+  clear: (notice?: string | null) => void
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   status: 'unknown',
   user: null,
+  notice: null,
 
   bootstrap: async () => {
     try {
-      const user = await authApi.getMe()
-      set(user ? { status: 'authenticated', user } : { status: 'anonymous', user: null })
+      const { user, notice } = await authApi.getMe()
+      // 같은 순간에 요청이 여러 개면 첫 요청만 끊긴 이유를 받고 나머지는 그냥 401 이다 → 받아 둔 이유를 지우지 않는다
+      set((s) => (user ? { status: 'authenticated', user } : { status: 'anonymous', user: null, notice: notice ?? s.notice }))
     } catch {
       set({ status: 'anonymous', user: null })
     }
@@ -32,7 +36,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   login: async (req) => {
     const user = await authApi.login(req)
-    set({ status: 'authenticated', user })
+    set({ status: 'authenticated', user, notice: null })
     return user
   },
 
@@ -44,10 +48,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  clear: () => set({ status: 'anonymous', user: null }),
+  clear: (notice = null) => set((s) => ({ status: 'anonymous', user: null, notice: notice ?? s.notice })),
 }))
 
 // 로그인 상태에서 API 가 401 을 돌려주면(세션 만료) 로그아웃 상태로 바꾼다 → 가드가 /login 으로 보낸다
-setUnauthorizedHandler(() => {
-  if (useAuthStore.getState().status === 'authenticated') useAuthStore.getState().clear()
+setUnauthorizedHandler((message) => {
+  if (useAuthStore.getState().status === 'authenticated') useAuthStore.getState().clear(message)
 })

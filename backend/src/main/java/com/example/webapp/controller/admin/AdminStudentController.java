@@ -19,10 +19,12 @@ import com.example.webapp.dto.StudentSummary;
 import com.example.webapp.dto.inquiry.NoteCreateRequest;
 import com.example.webapp.dto.student.EnrollmentCreateRequest;
 import com.example.webapp.dto.student.EnrollmentEndRequest;
+import com.example.webapp.dto.student.StudentCredentials;
 import com.example.webapp.dto.student.StudentDetail;
 import com.example.webapp.dto.student.StudentUpsertRequest;
 import com.example.webapp.jooq.enums.StudentStatus;
 import com.example.webapp.security.AppUser;
+import com.example.webapp.service.StudentAccountService;
 import com.example.webapp.service.StudentService;
 
 import jakarta.validation.Valid;
@@ -36,9 +38,11 @@ import jakarta.validation.Valid;
 public class AdminStudentController {
 
     private final StudentService studentService;
+    private final StudentAccountService accounts;
 
-    public AdminStudentController(StudentService studentService) {
+    public AdminStudentController(StudentService studentService, StudentAccountService accounts) {
         this.studentService = studentService;
+        this.accounts = accounts;
     }
 
     /** 학생 검색: q(이름·학생 코드·학교·학부모 연락처), status, page(0부터), size(최대 100) */
@@ -75,6 +79,12 @@ public class AdminStudentController {
     public StudentDetail addNote(@PathVariable UUID id, @Valid @RequestBody NoteCreateRequest request,
             @AuthenticationPrincipal AppUser user) {
         return studentService.addNote(id, request.content(), user.id());
+    }
+
+    /** 학생 정식 계정 만들기(없으면) 또는 비밀번호 재발급. 새 6자리 비밀번호를 한 번만 내려준다 */
+    @PostMapping("/{id}/reset-password")
+    public StudentCredentials resetPassword(@PathVariable UUID id, @AuthenticationPrincipal AppUser user) {
+        return accounts.resetPassword(id, user.id());
     }
 
     /** 반에 넣기 (대표) */

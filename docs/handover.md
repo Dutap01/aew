@@ -149,6 +149,24 @@ cd frontend && npm install && npm run dev
 - API: `GET /api/admin/timetables/students/{id}`, `/api/admin/timetables/teachers/{id}`, `/api/t/timetable`, `/api/s/timetable` (모두 `?week=YYYY-MM-DD`, 없으면 이번 주)
 - 화면 공용 컴포넌트 `components/timetable/WeekTimetable.tsx`: 넓은 화면은 요일×시간 격자, 좁은 화면은 요일별 목록. 주말 칸은 주말 수업이 있을 때만
 
+### 레벨테스트 응시·자동채점 (2주차)
+- 흐름: 접수 상세(레벨테스트 접수, 학생 연결 후) 또는 학생 상세에서 **"레벨테스트 발급"** → 학생 로그인 → `/s/test` → 응시 → 제출 → 자동채점 → `/admin/level-tests` 결과
+- **레벨테스트 전용 계정** (학생 정식 계정 S-0001 과 별도, `TestAccountService`, V3 마이그레이션)
+  - 발급할 때마다 응시 하나에 계정 하나: 아이디 `T` + 6자리, 비밀번호 6자리 (한 번만 보여주고 DB 에는 해시). 역할 `test_taker` 는 `/s/test` 만 쓸 수 있다
+  - 사용 시간: **발급 시각 + 설정한 분** (`profiles.expires_at`). 응시를 시작하면 시험이 끝날 때 + 1분까지 늘어난다 (시험 중에 끊기지 않게)
+  - 기한이 지나면 로그인이 막히고(`AppUser.isAccountNonExpired`), 로그인해 있던 화면도 다음 요청에서 끊겨 로그인 화면에 이유가 나온다(`TestAccountExpiryFilter`). 응답·감사 로그가 참조하므로 행은 지우지 않는다
+  - 아이디·사용 기한은 접수 상세와 레벨테스트 결과의 "응시 계정"에서 다시 본다. 비밀번호를 잊었거나 시간이 지났으면 **"다시 발급"** (같은 아이디, 새 비밀번호, 시간 다시) `POST /api/admin/attempts/{id}/account`. 발급 취소하면 계정도 바로 끝남
+- **레벨테스트 설정** `/admin/settings/level-test` (대표·상담실장): 계정 사용 시간(10~1440분, 기본 30분, `app_settings.level_test_account_minutes`)과 지금 쓸 수 있는 레벨테스트 계정 목록. 바꾼 값은 이후 발급분부터
+- 학생 정식 계정은 학생 상세의 "학생 계정"에서 **계정 만들기 / 비밀번호 재발급** (`POST /api/admin/students/{id}/reset-password`)
+- 학생 첫 화면은 `/s/test` (숙제가 생기기 전까지). 학생에게는 점수를 보여주지 않는다
+- 응시: 답은 고르는 즉시 자동 저장(단답·서술은 입력이 멈추면), 새로고침해도 유지. 제한 시간이 끝나면 화면이 자동 제출하고, 서버도 1분 여유 뒤 저장을 막고 다음 조회 때 저장된 답으로 제출한다
+- 채점 룰 `rule/ScoringRule.java` (`scoring-v1`, `attempts.rule_version` 에 기록)
+  - 객관식: 번호 일치 / 단답형: 허용 답 중 하나 (대소문자·공백·끝 문장부호·따옴표 모양 무시) / 서술형: 사람이 결과 화면에서 채점 → 남아 있으면 상태 "채점대기"
+  - 문항 형식: `items.content` `{"stem","passage"?,"choices"?}`, `items.answer` 객관식 `{"choice":2}`(1부터) · 단답 `{"accepted":[..]}` · 서술 `{"rubric":".."}`
+- 운영자 결과(`/admin/level-tests/{id}`): 총점·영역별 점수·문항별 정오, 서술형 채점, 시작 전 발급 취소, 응시 중 대신 제출
+- **문항은 지금 임시**: 개발 DB 에만 `DevDataSeeder` 가 "중등 영어 레벨테스트 (임시)" 20문항을 넣는다. 운영 DB 에는 테스트가 없어서 발급할 수 없다. 발주처 문항·정답을 받으면 Flyway 마이그레이션(V3…)으로 `items`·`tests`·`test_items` 에 넣는다
+- 메인 화면 레이아웃 `<main>` 은 `overflow-clip` (hidden 이면 안쪽 sticky 가 동작하지 않음. 응시 화면 위 고정 막대)
+
 ### 학부모 안내 문자 (가짜 발송)
 - 상담 일정 등록(예약확정)·시간 변경·취소 때 안내를 `notifications` 에 쌓고(`NotificationService`), `NotificationWorker` 가 `app.notification.poll-ms`(개발 10초, 운영 60초)마다 발송
 - 받는 번호: 접수 신청자 번호, 접수 없는 일정이면 학생의 학부모 번호. 같은 안내는 `dedupe_key` 로 한 번만
@@ -183,7 +201,7 @@ export const getTrend = () => api.get<TrendSeries>('/dashboard/trend')
 ## 남은 작업 / 알려진 이슈
 
 - **계정 관리 화면 미구현**: 운영 서버 첫 대표 계정은 환경변수 `OWNER_LOGIN_ID` / `OWNER_PASSWORD`(8자 이상)로 만든다 (`OwnerBootstrap`). 나머지 계정은 계정·권한 화면(대표 전용)에서 만들 예정.
-- **아직 placeholder 인 화면**: 레벨테스트, 진단서, 리포트 등 3주차 이후 화면. 대시보드 홈 데이터는 아직 mock 이다.
+- **아직 placeholder 인 화면**: 진단서, 리포트 등 3주차 이후 화면. 대시보드 홈 데이터는 아직 mock 이다.
 - **프론트 테스트 미구성**: 빌드/타입 검사와 브라우저 수동 확인만 했다. Vitest + Testing Library 도입 권장.
 - **도메인/HTTPS 미연결**: `docs/deployment.md` 의 "도메인 연결" 참고.
 - **개발 컨테이너는 root 로 실행**: 컨테이너 안에서 만든 `node_modules`, `target` 이 호스트에서 root 소유가 될 수 있다. 권한 문제 시 `sudo chown -R $USER .` 로 정리.

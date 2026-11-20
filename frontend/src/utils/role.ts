@@ -6,6 +6,7 @@ export const ROLE_LABEL: Record<Role, string> = {
   counselor: '상담실장',
   teacher: '강사',
   student: '학생',
+  test_taker: '레벨테스트 응시',
 }
 
 /** 대표(owner)는 모든 화면에 접근할 수 있다 */
@@ -23,6 +24,10 @@ export function homePathOf(role: Role): string {
     case 'teacher':
       return '/t/dashboard'
     case 'student':
-      return '/s/homework'
+      // 숙제(4주차)가 생기기 전까지는 레벨테스트 목록. 레벨테스트 날 로그인하면 바로 응시할 수 있게
+      return '/s/test'
+    case 'test_taker':
+      // 레벨테스트 전용 계정: 자기 테스트만
+      return '/s/test'
   }
 }

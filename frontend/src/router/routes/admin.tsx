@@ -1,11 +1,14 @@
 // 대표·상담실장 화면 (/admin/**). 백엔드 /api/admin/** 와 같은 역할 구분.
 import type { RouteObject } from 'react-router'
 import { RequireAuth } from '@/router/guards'
+import { AttemptDetailView } from '@/views/admin/AttemptDetailView'
 import { ClassesView } from '@/views/admin/ClassesView'
 import { ConsultCalendarView } from '@/views/admin/ConsultCalendarView'
 import { DashboardView } from '@/views/admin/DashboardView'
 import { InquiriesView } from '@/views/admin/InquiriesView'
 import { InquiryDetailView } from '@/views/admin/InquiryDetailView'
+import { LevelTestSettingsView } from '@/views/admin/LevelTestSettingsView'
+import { LevelTestsView } from '@/views/admin/LevelTestsView'
 import { NotificationsView } from '@/views/admin/NotificationsView'
 import { StudentDetailView } from '@/views/admin/StudentDetailView'
 import { StudentsView } from '@/views/admin/StudentsView'
@@ -28,12 +31,15 @@ export const adminRoutes: RouteObject[] = [
       { path: 'students/:id', element: <StudentDetailView /> },
       // 반 구성: 대표는 수정, 상담실장은 조회만 (백엔드에서 POST·PUT 은 대표만)
       { path: 'classes', element: <ClassesView /> },
-      { path: 'level-tests', element: <PlaceholderView title="레벨테스트 결과" plan="2주차" /> },
+      { path: 'level-tests', element: <LevelTestsView /> },
+      { path: 'level-tests/:id', element: <AttemptDetailView /> },
       { path: 'diagnoses/:id', element: <PlaceholderView title="진단서" plan="3주차" /> },
       { path: 'reports', element: <PlaceholderView title="리포트 승인" plan="5주차" /> },
       { path: 'reports/:id', element: <PlaceholderView title="리포트 상세" plan="5주차" /> },
       { path: 'report-schedules', element: <PlaceholderView title="리포트 일정" plan="5주차" /> },
       { path: 'notifications', element: <NotificationsView /> },
+      // 레벨테스트 계정 사용 시간 (대표·상담실장)
+      { path: 'settings/level-test', element: <LevelTestSettingsView /> },
       // 대표 전용
       {
         element: <RequireAuth roles={['owner']} />,

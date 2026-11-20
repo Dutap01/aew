@@ -1,4 +1,4 @@
-// 로그인 (운영자·학생 공용). 운영자는 아이디, 학생은 학생 코드(S-0001)로 로그인한다.
+// 로그인 (운영자·학생 공용). 운영자는 아이디, 학생은 학생 코드(S-0001), 레벨테스트는 발급받은 T123456 으로 로그인한다.
 import { Eye, EyeOff, LoaderCircle, LogIn } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
 import { type FormEvent, useState } from 'react'
@@ -35,7 +35,8 @@ export function LoginView() {
   const [loginId, setLoginId] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  // 로그인 중 끊긴 이유가 있으면 처음부터 보여준다 (예: 레벨테스트 계정 사용 시간 끝남)
+  const [error, setError] = useState<string | null>(() => useAuthStore.getState().notice)
   const [submitting, setSubmitting] = useState(false)
 
   async function onSubmit(e: FormEvent) {
@@ -91,7 +92,7 @@ export function LoginView() {
               autoComplete="username"
               autoCapitalize="off"
               spellCheck={false}
-              placeholder="예: S-0001"
+              placeholder="예: S-0001, 레벨테스트는 T123456"
               value={loginId}
               onChange={(e) => setLoginId(e.target.value)}
               className={INPUT}
