@@ -9,6 +9,7 @@ import { InquiryDetailView } from '@/views/admin/InquiryDetailView'
 import { NotificationsView } from '@/views/admin/NotificationsView'
 import { StudentDetailView } from '@/views/admin/StudentDetailView'
 import { StudentsView } from '@/views/admin/StudentsView'
+import { TimetablesView } from '@/views/admin/TimetablesView'
 import { PlaceholderView } from '@/views/base/PlaceholderView'
 
 export const adminRoutes: RouteObject[] = [
@@ -22,7 +23,7 @@ export const adminRoutes: RouteObject[] = [
       // 상담·레벨테스트 일정 달력 (월간·주간)
       { path: 'consult-calendar', element: <ConsultCalendarView /> },
       // 학생·강사 검색 → 개인 주간 시간표 (?student=ID / ?teacher=ID)
-      { path: 'timetables', element: <PlaceholderView title="시간표 조회" plan="2주차" /> },
+      { path: 'timetables', element: <TimetablesView /> },
       { path: 'students', element: <StudentsView /> },
       { path: 'students/:id', element: <StudentDetailView /> },
       // 반 구성: 대표는 수정, 상담실장은 조회만 (백엔드에서 POST·PUT 은 대표만)

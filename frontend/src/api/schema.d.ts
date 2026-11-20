@@ -244,6 +244,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/t/timetable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["mine"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/s/timetable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["mine_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/public/courses": {
         parameters: {
             query?: never;
@@ -284,6 +316,54 @@ export interface paths {
             cookie?: never;
         };
         get: operations["me"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/timetables/teachers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["teachers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/timetables/teachers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["teacher"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/timetables/students/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["student"];
         put?: never;
         post?: never;
         delete?: never;
@@ -379,7 +459,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["teachers"];
+        get: operations["teachers_1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -667,6 +747,37 @@ export interface components {
             counselorId?: string | null;
             memo?: string | null;
         };
+        Timetable: {
+            owner: components["schemas"]["TimetableOwner"];
+            /** Format: date */
+            weekStart: string;
+            entries: components["schemas"]["TimetableEntry"][];
+        };
+        TimetableEntry: {
+            /** Format: uuid */
+            classId: string;
+            className: string;
+            level: string;
+            /** Format: date */
+            date: string;
+            /** Format: int32 */
+            weekday: number;
+            /** @example 16:00 */
+            startTime: string;
+            /** @example 17:30 */
+            endTime: string;
+            teacherName: string | null;
+            /** Format: int32 */
+            studentCount: number | null;
+        };
+        TimetableOwner: {
+            /** @enum {string} */
+            kind: "student" | "teacher";
+            /** Format: uuid */
+            id: string;
+            name: string;
+            detail: string | null;
+        };
         CourseClass: {
             name: string;
             /** Format: int32 */
@@ -696,6 +807,13 @@ export interface components {
             /** Format: uuid */
             id: string;
             loginId: string;
+            name: string;
+            /** @enum {string} */
+            role: "owner" | "counselor" | "teacher" | "student";
+        };
+        StaffOption: {
+            /** Format: uuid */
+            id: string;
             name: string;
             /** @enum {string} */
             role: "owner" | "counselor" | "teacher" | "student";
@@ -803,13 +921,6 @@ export interface components {
             completed: number;
             /** Format: int64 */
             canceled: number;
-        };
-        StaffOption: {
-            /** Format: uuid */
-            id: string;
-            name: string;
-            /** @enum {string} */
-            role: "owner" | "counselor" | "teacher" | "student";
         };
     };
     responses: never;
@@ -1312,6 +1423,50 @@ export interface operations {
             };
         };
     };
+    mine: {
+        parameters: {
+            query?: {
+                week?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["Timetable"];
+                };
+            };
+        };
+    };
+    mine_1: {
+        parameters: {
+            query?: {
+                week?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["Timetable"];
+                };
+            };
+        };
+    };
     levels: {
         parameters: {
             query?: never;
@@ -1370,6 +1525,74 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["MeResponse"];
+                };
+            };
+        };
+    };
+    teachers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["StaffOption"][];
+                };
+            };
+        };
+    };
+    teacher: {
+        parameters: {
+            query?: {
+                week?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["Timetable"];
+                };
+            };
+        };
+    };
+    student: {
+        parameters: {
+            query?: {
+                week?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["Timetable"];
                 };
             };
         };
@@ -1492,7 +1715,7 @@ export interface operations {
             };
         };
     };
-    teachers: {
+    teachers_1: {
         parameters: {
             query?: never;
             header?: never;

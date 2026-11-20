@@ -2,6 +2,7 @@
 import type { RouteObject } from 'react-router'
 import { RequireAuth } from '@/router/guards'
 import { PlaceholderView } from '@/views/base/PlaceholderView'
+import { TeacherTimetableView } from '@/views/teacher/MyTimetableView'
 
 export const teacherRoutes: RouteObject[] = [
   {
@@ -9,7 +10,7 @@ export const teacherRoutes: RouteObject[] = [
     element: <RequireAuth roles={['teacher']} />,
     children: [
       { path: 'dashboard', element: <PlaceholderView title="강사 대시보드" plan="5주차" /> },
-      { path: 'timetable', element: <PlaceholderView title="내 시간표" plan="2주차" /> },
+      { path: 'timetable', element: <TeacherTimetableView /> },
       { path: 'attendance', element: <PlaceholderView title="출석부" plan="4주차" /> },
       { path: 'attendance/:classId', element: <PlaceholderView title="출석부" plan="4주차" /> },
       { path: 'homework', element: <PlaceholderView title="보충 숙제" plan="4주차" /> },

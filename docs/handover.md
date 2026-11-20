@@ -141,6 +141,14 @@ cd frontend && npm install && npm run dev
   - 수업 시간: 같은 반 안에서, 그리고 같은 강사의 다른 운영 중 반과 시간이 겹치면 저장 안 됨 (바로 이어지는 시간은 가능). 개인 시간표가 이 데이터에서 계산되기 때문
   - 레벨 코드는 대문자로 저장 (m1 → M1)
 
+### 개인 시간표 (2주차)
+- 따로 입력하지 않고 반(`classes`) + 수업 시간(`class_schedules`) + 반 소속(`enrollments`)에서 계산한다 (`TimetableService`)
+- `/admin/timetables`: 학생(이름·코드 검색) 또는 강사를 골라 주간 시간표 (`?student=|?teacher=&week=`). 대표·상담실장
+- `/t/timetable` 강사 본인 (담당하는 운영 중 반, 학생 수 표시) / `/s/timetable` 학생 본인 (담당 강사 표시)
+- 주 단위(월~일)로 계산하고, 학생은 **반 소속 기간 안의 날짜만** 나온다. 그래서 반 이동·종료가 주를 넘겨 보면 날짜대로 반영된다
+- API: `GET /api/admin/timetables/students/{id}`, `/api/admin/timetables/teachers/{id}`, `/api/t/timetable`, `/api/s/timetable` (모두 `?week=YYYY-MM-DD`, 없으면 이번 주)
+- 화면 공용 컴포넌트 `components/timetable/WeekTimetable.tsx`: 넓은 화면은 요일×시간 격자, 좁은 화면은 요일별 목록. 주말 칸은 주말 수업이 있을 때만
+
 ### 학부모 안내 문자 (가짜 발송)
 - 상담 일정 등록(예약확정)·시간 변경·취소 때 안내를 `notifications` 에 쌓고(`NotificationService`), `NotificationWorker` 가 `app.notification.poll-ms`(개발 10초, 운영 60초)마다 발송
 - 받는 번호: 접수 신청자 번호, 접수 없는 일정이면 학생의 학부모 번호. 같은 안내는 `dedupe_key` 로 한 번만
@@ -175,7 +183,7 @@ export const getTrend = () => api.get<TrendSeries>('/dashboard/trend')
 ## 남은 작업 / 알려진 이슈
 
 - **계정 관리 화면 미구현**: 운영 서버 첫 대표 계정은 환경변수 `OWNER_LOGIN_ID` / `OWNER_PASSWORD`(8자 이상)로 만든다 (`OwnerBootstrap`). 나머지 계정은 계정·권한 화면(대표 전용)에서 만들 예정.
-- **아직 placeholder 인 화면**: 시간표, 레벨테스트, 진단서, 리포트 등 3주차 이후 화면. 대시보드 홈 데이터는 아직 mock 이다.
+- **아직 placeholder 인 화면**: 레벨테스트, 진단서, 리포트 등 3주차 이후 화면. 대시보드 홈 데이터는 아직 mock 이다.
 - **프론트 테스트 미구성**: 빌드/타입 검사와 브라우저 수동 확인만 했다. Vitest + Testing Library 도입 권장.
 - **도메인/HTTPS 미연결**: `docs/deployment.md` 의 "도메인 연결" 참고.
 - **개발 컨테이너는 root 로 실행**: 컨테이너 안에서 만든 `node_modules`, `target` 이 호스트에서 root 소유가 될 수 있다. 권한 문제 시 `sudo chown -R $USER .` 로 정리.
