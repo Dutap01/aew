@@ -22,6 +22,13 @@ spring:
     locations: classpath:db/migration
 
 app:
+  academy:                   # 문자 안내에 들어가는 학원 이름·연락처
+    name: ${ACADEMY_NAME:한빛영어}
+    phone: ${ACADEMY_PHONE:02-000-0000}
+  notification:
+    sender: mock             # mock: 실제로 보내지 않음 (발송 이력에만 기록). 솔라피 연결 후 solapi
+    poll-ms: 10000           # 발송 워커 주기 (운영 60000 권장)
+    worker-enabled: true
   seed:
     enabled: true            # 개발용 샘플 데이터 (계정·반·학생). prod 에서는 꺼짐
     students: 150

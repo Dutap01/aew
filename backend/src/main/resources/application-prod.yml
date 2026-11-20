@@ -18,6 +18,9 @@ spring:
 app:
   seed:
     enabled: false
+  notification:
+    sender: ${NOTIFICATION_SENDER:mock}   # 솔라피 연결 전까지 mock
+    poll-ms: 60000
 
 springdoc:
   api-docs:

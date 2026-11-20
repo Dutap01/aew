@@ -27,6 +27,7 @@ export function AppointmentDetailDialog({ appointment: a, onClose, onEdit, onCha
       queryClient.invalidateQueries({ queryKey: ['appointments'] })
       queryClient.invalidateQueries({ queryKey: ['inquiry'] })
       queryClient.invalidateQueries({ queryKey: ['inquiries'] })
+      queryClient.invalidateQueries({ queryKey: ['notifications'] })
       onChanged(updated)
     },
   })

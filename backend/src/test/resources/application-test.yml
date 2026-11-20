@@ -6,3 +6,5 @@ spring:
 app:
   seed:
     enabled: false
+  notification:
+    worker-enabled: false   # 테스트는 NotificationWorker.runOnce() 를 직접 호출

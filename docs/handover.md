@@ -129,6 +129,26 @@ cd frontend && npm install && npm run dev
 - 일정 창은 `components/appointment/` (등록·변경 `AppointmentFormDialog`, 상세 `AppointmentDetailDialog`), 공용 모달은 `components/ui/Dialog.tsx`
 - 달력 날짜 계산은 `utils/seoulDate.ts` (한국 날짜 문자열 기준, 시각은 +09:00)
 
+### 학생·반 관리 (2주차)
+- `/admin/students`: 목록·검색 + "학생 등록" (접수 없이 온 학생. 상태는 상담중·테스트예정만, 재원은 반에 넣으면서 바뀜)
+- `/admin/students/{id}`: 기본 정보 수정, 반 소속, 타임라인(학생 등록·접수·상담 기록·상담 일정·반 시작/종료·상태 변경, 최신 먼저), 상담 기록 쓰기
+  - 타임라인은 `StudentRepository.timeline()` 에서 여러 테이블을 모아 만든다. 레벨테스트·진단서·숙제·리포트도 생기면 여기에 더한다
+- `/admin/classes`: 반 목록 + 고른 반의 학생 (`?class=&all=1`). 대표는 반 만들기·수정, 상담실장은 조회만
+- 권한: 반 구성 수정(`POST·PUT /api/admin/classes/**`)과 반 배정(`/api/admin/students/*/enrollments/**`)은 대표만 (`SecurityConfig`)
+- 규칙 (`StudentService`, `ClassService`)
+  - 반에 넣으면 학생은 재원 / 퇴원으로 바꾸면 지금 반 소속을 오늘 날짜로 종료 / 소속 종료만으로는 상태를 바꾸지 않음 (반 이동일 수 있음)
+  - 정원이 차거나 운영 종료한 반에는 못 넣음. 학생이 있는 반은 운영 종료·정원 축소 불가
+  - 수업 시간: 같은 반 안에서, 그리고 같은 강사의 다른 운영 중 반과 시간이 겹치면 저장 안 됨 (바로 이어지는 시간은 가능). 개인 시간표가 이 데이터에서 계산되기 때문
+  - 레벨 코드는 대문자로 저장 (m1 → M1)
+
+### 학부모 안내 문자 (가짜 발송)
+- 상담 일정 등록(예약확정)·시간 변경·취소 때 안내를 `notifications` 에 쌓고(`NotificationService`), `NotificationWorker` 가 `app.notification.poll-ms`(개발 10초, 운영 60초)마다 발송
+- 받는 번호: 접수 신청자 번호, 접수 없는 일정이면 학생의 학부모 번호. 같은 안내는 `dedupe_key` 로 한 번만
+- 실패 시 30초·60초 뒤 재시도, 3회 실패하면 `failed`. 운영 화면 `/admin/notifications` 에서 재발송(실패 → 다시 대기, 성공 → 한 번 더)
+- 발송기: `app.notification.sender=mock` (지금). 실제로 보내지 않고 기록만, 번호 끝 0000 은 실패를 흉내 낸다
+- 솔라피 연결 시: `NotificationSender` 구현(`SolapiNotificationSender`)을 추가하고 `sender=solapi`. 테스트 기간에는 허용 번호(내 폰)만 보내도록 할 것
+- 문구는 `notification/NotificationTemplate.java`, 학원 이름·번호는 `app.academy.name/phone` (환경변수 `ACADEMY_NAME`, `ACADEMY_PHONE`)
+
 ### mock → 실제 API 로 교체
 `frontend/src/api/dashboard.ts` 의 각 함수 옆 주석에 대응하는 API 경로가 적혀 있다. 함수 본문만 바꾸면 페이지/컴포넌트는 수정하지 않아도 된다.
 ```ts
@@ -155,7 +175,7 @@ export const getTrend = () => api.get<TrendSeries>('/dashboard/trend')
 ## 남은 작업 / 알려진 이슈
 
 - **계정 관리 화면 미구현**: 운영 서버 첫 대표 계정은 환경변수 `OWNER_LOGIN_ID` / `OWNER_PASSWORD`(8자 이상)로 만든다 (`OwnerBootstrap`). 나머지 계정은 계정·권한 화면(대표 전용)에서 만들 예정.
-- **대시보드 외 화면 미구현**: 대시보드 홈만 구현됐고 나머지 메뉴는 placeholder 다. 데이터는 전부 mock 이다.
+- **아직 placeholder 인 화면**: 시간표, 레벨테스트, 진단서, 리포트 등 3주차 이후 화면. 대시보드 홈 데이터는 아직 mock 이다.
 - **프론트 테스트 미구성**: 빌드/타입 검사와 브라우저 수동 확인만 했다. Vitest + Testing Library 도입 권장.
 - **도메인/HTTPS 미연결**: `docs/deployment.md` 의 "도메인 연결" 참고.
 - **개발 컨테이너는 root 로 실행**: 컨테이너 안에서 만든 `node_modules`, `target` 이 호스트에서 root 소유가 될 수 있다. 권한 문제 시 `sudo chown -R $USER .` 로 정리.

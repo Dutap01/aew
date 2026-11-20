@@ -6,6 +6,7 @@ import java.util.function.Supplier;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.DisabledException;
@@ -43,7 +44,7 @@ import jakarta.servlet.http.HttpServletResponse;
  *   <li>로그인: POST /api/auth/login (form: loginId, password) → 200 MeResponse / 401</li>
  *   <li>로그아웃: POST /api/auth/logout → 204</li>
  *   <li>CSRF: XSRF-TOKEN 쿠키를 읽어 X-XSRF-TOKEN 헤더로 보낸다 (React 같은 SPA 방식)</li>
- *   <li>/api/admin/** 대표·상담실장, /api/t/** 강사·대표, /api/s/** 학생, /api/public/**·/api/r/** 로그인 없이</li>
+ *   <li>/api/admin/** 대표·상담실장 (반 구성 수정·반 배정은 대표만), /api/t/** 강사·대표, /api/s/** 학생, /api/public/**·/api/r/** 로그인 없이</li>
  * </ul>
  * 화면(React 라우터)의 가드는 편의용이고 실제 보호는 여기서 한다.
  * "담당 반만", "본인만" 같은 행 단위 검사는 서비스 계층에서 한다.
@@ -75,6 +76,11 @@ public class SecurityConfig {
                 .requestMatchers("/api/health", "/actuator/health/**").permitAll()
                 .requestMatchers("/api/public/**", "/api/r/**").permitAll()
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                // 반 구성 수정·반 배정(반 소속 추가·종료)은 대표만. 조회는 아래 /api/admin/** 규칙
+                .requestMatchers(HttpMethod.POST, "/api/admin/classes", "/api/admin/classes/**",
+                        "/api/admin/students/*/enrollments", "/api/admin/students/*/enrollments/**").hasRole("OWNER")
+                .requestMatchers(HttpMethod.PUT, "/api/admin/classes/**",
+                        "/api/admin/students/*/enrollments/**").hasRole("OWNER")
                 .requestMatchers("/api/admin/**").hasAnyRole("OWNER", "COUNSELOR")
                 .requestMatchers("/api/t/**").hasAnyRole("TEACHER", "OWNER")
                 .requestMatchers("/api/s/**").hasRole("STUDENT")

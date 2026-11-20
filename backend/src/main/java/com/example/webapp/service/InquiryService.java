@@ -24,6 +24,8 @@ import com.example.webapp.jooq.enums.InquiryStatus;
 import com.example.webapp.jooq.enums.InquiryType;
 import com.example.webapp.jooq.enums.StudentStatus;
 import com.example.webapp.jooq.tables.records.InquiriesRecord;
+import com.example.webapp.notification.NotificationService;
+import com.example.webapp.notification.NotificationTemplate;
 import com.example.webapp.repository.AppointmentRepository;
 import com.example.webapp.repository.InquiryRepository;
 
@@ -48,12 +50,15 @@ public class InquiryService {
     private final InquiryRepository inquiries;
     private final AppointmentRepository appointments;
     private final AuditService audit;
+    private final NotificationService notifications;
 
-    public InquiryService(DSLContext dsl, InquiryRepository inquiries, AppointmentRepository appointments, AuditService audit) {
+    public InquiryService(DSLContext dsl, InquiryRepository inquiries, AppointmentRepository appointments, AuditService audit,
+            NotificationService notifications) {
         this.dsl = dsl;
         this.inquiries = inquiries;
         this.appointments = appointments;
         this.audit = audit;
+        this.notifications = notifications;
     }
 
     /** 공개 신청서 접수 (로그인 없음) */
@@ -117,8 +122,10 @@ public class InquiryService {
                     : "예약된 일정이 있습니다. 일정을 취소하면 연락완료로 돌아갑니다.");
         }
         if (to == InquiryStatus.canceled && hasScheduled) {
-            int canceled = appointments.cancelScheduled(id);
-            audit.record(actorId, "cancel_with_inquiry", "consult_appointments", id, null, Map.of("count", canceled));
+            var canceled = appointments.cancelScheduled(id);
+            audit.record(actorId, "cancel_with_inquiry", "consult_appointments", id, null, Map.of("count", canceled.size()));
+            String eventKey = OffsetDateTime.now().toInstant().toString();
+            canceled.forEach(a -> notifications.enqueueForAppointment(a, NotificationTemplate.APPOINTMENT_CANCELED, eventKey));
         }
         inquiry.setStatus(to);
         inquiry.setUpdatedAt(OffsetDateTime.now());

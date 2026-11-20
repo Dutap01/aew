@@ -90,7 +90,7 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     title: '설정',
     items: [
-      { key: 'classes', label: '반 구성', path: '/admin/classes', icon: Users, roles: OWNER },
+      { key: 'classes', label: '반 구성', path: '/admin/classes', icon: Users, roles: ADMIN },
       { key: 'aiJobs', label: 'AI 처리 이력', path: '/admin/ai-jobs', icon: Bot, roles: OWNER },
       { key: 'users', label: '계정·권한', path: '/admin/settings/users', icon: UserCog, roles: OWNER },
       { key: 'rules', label: '룰·프롬프트', path: '/admin/settings/rules', icon: SlidersHorizontal, roles: OWNER },

@@ -23,12 +23,15 @@ import com.example.webapp.dto.appointment.StaffOption;
 import com.example.webapp.jooq.enums.AppointmentStatus;
 import com.example.webapp.jooq.enums.InquiryStatus;
 import com.example.webapp.jooq.enums.InquiryType;
+import com.example.webapp.notification.NotificationService;
+import com.example.webapp.notification.NotificationTemplate;
 import com.example.webapp.repository.AppointmentRepository;
 
 /**
  * 상담 달력.
  * 접수와 연결된 일정은 접수 상태를 함께 바꾼다:
  *   일정 등록 → 접수 예약확정 / 일정 완료 → 접수 완료 / 일정 취소·불참(남은 예약 없음) → 접수 연락완료
+ * 학부모 안내(문자): 등록·되돌리기 → 예약 확정 / 시간 변경 → 일정 변경 / 취소 → 일정 취소 (NotificationService 에 쌓고 워커가 발송)
  */
 @Service
 public class AppointmentService {
@@ -42,13 +45,15 @@ public class AppointmentService {
     private final AppointmentRepository appointments;
     private final InquiryService inquiryService;
     private final AuditService audit;
+    private final NotificationService notifications;
 
     public AppointmentService(DSLContext dsl, AppointmentRepository appointments, InquiryService inquiryService,
-            AuditService audit) {
+            AuditService audit, NotificationService notifications) {
         this.dsl = dsl;
         this.appointments = appointments;
         this.inquiryService = inquiryService;
         this.audit = audit;
+        this.notifications = notifications;
     }
 
     @Transactional(readOnly = true)
@@ -110,6 +115,7 @@ public class AppointmentService {
         if (req.inquiryId() != null) {
             moveInquiry(req.inquiryId(), InquiryStatus.scheduled, actorId);
         }
+        notifications.enqueueForAppointment(id, NotificationTemplate.APPOINTMENT_CONFIRMED, req.startsAt().toInstant().toString());
         return find(id);
     }
 
@@ -125,6 +131,7 @@ public class AppointmentService {
         checkOverlap(counselorId, req.startsAt(), req.endsAt(), id);
 
         var before = Map.of("startsAt", a.getStartsAt().toString(), "endsAt", a.getEndsAt().toString());
+        boolean timeChanged = !a.getStartsAt().isEqual(req.startsAt());
         a.setTitle(req.title().trim());
         a.setStartsAt(req.startsAt());
         a.setEndsAt(req.endsAt());
@@ -134,6 +141,9 @@ public class AppointmentService {
         a.store();
         audit.record(actorId, "update", "consult_appointments", id, before,
                 Map.of("startsAt", req.startsAt().toString(), "endsAt", req.endsAt().toString()));
+        if (timeChanged) {
+            notifications.enqueueForAppointment(id, NotificationTemplate.APPOINTMENT_CHANGED, req.startsAt().toInstant().toString());
+        }
         return find(id);
     }
 
@@ -152,6 +162,13 @@ public class AppointmentService {
         a.setUpdatedAt(OffsetDateTime.now());
         a.store();
         audit.record(actorId, "status_change", "consult_appointments", id, Map.of("status", from), Map.of("status", to));
+        // 취소·되돌리기는 사람이 명시적으로 한 일이라 그때마다 안내 (불참·완료는 안내 없음)
+        String eventKey = a.getUpdatedAt().toInstant().toString();
+        if (to == AppointmentStatus.canceled) {
+            notifications.enqueueForAppointment(id, NotificationTemplate.APPOINTMENT_CANCELED, eventKey);
+        } else if (to == AppointmentStatus.scheduled) {
+            notifications.enqueueForAppointment(id, NotificationTemplate.APPOINTMENT_CONFIRMED, "restored:" + eventKey);
+        }
 
         if (a.getInquiryId() != null) {
             switch (to) {

@@ -1,10 +1,11 @@
 // 학생 목록·검색 (대표·상담실장). 검색어·상태·페이지는 주소(?q=&status=&page=)에 남겨 새로고침·뒤로가기에도 유지한다.
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import { ChevronLeft, ChevronRight, LoaderCircle, Search, UserRoundX, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, LoaderCircle, Search, UserPlus, UserRoundX, X } from 'lucide-react'
 import { type ReactNode, useEffect, useState } from 'react'
-import { Link, useSearchParams } from 'react-router'
+import { Link, useNavigate, useSearchParams } from 'react-router'
 import { searchStudents } from '@/api/students'
 import { Topbar } from '@/components/layout/Topbar'
+import { StudentFormDialog } from '@/components/student/StudentFormDialog'
 import { Card } from '@/components/ui/Card'
 import { STUDENT_STATUS_LABEL, StudentStatusBadge } from '@/components/ui/StudentStatusBadge'
 import type { StudentStatus } from '@/types/student'
@@ -20,6 +21,8 @@ function isStatus(value: string | null): value is StudentStatus {
 }
 
 export function StudentsView() {
+  const navigate = useNavigate()
+  const [creating, setCreating] = useState(false)
   const [params, setParams] = useSearchParams()
   const status = isStatus(params.get('status')) ? (params.get('status') as StudentStatus) : undefined
   const page = Math.max(0, Number(params.get('page') ?? 0) || 0)
@@ -60,31 +63,37 @@ export function StudentsView() {
       <Topbar title="학생" subtitle={data ? `검색 결과 ${formatNumber(data.total)}명` : ' '} hideSearch />
 
       <Card hoverLift={false} className="mb-4 space-y-3">
-        <label className="relative block">
-          <span className="sr-only">학생 검색</span>
-          <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted" aria-hidden />
-          <input
-            id="student-search"
-            type="search"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="이름, 학생 코드(S-0001), 학교, 학부모 연락처 뒷자리"
-            className="h-11 w-full rounded-xl border border-line bg-white pr-10 pl-10 text-sm text-ink outline-none placeholder:text-muted/80 focus:border-brand focus:ring-2 focus:ring-brand/20 [&::-webkit-search-cancel-button]:hidden"
-            autoFocus
-          />
-          {query.isFetching ? (
-            <LoaderCircle className="absolute top-1/2 right-3.5 size-4 -translate-y-1/2 animate-spin text-muted" aria-label="검색 중" />
-          ) : input ? (
-            <button
-              type="button"
-              onClick={() => setInput('')}
-              aria-label="검색어 지우기"
-              className="absolute top-1/2 right-2 flex size-7 -translate-y-1/2 items-center justify-center rounded-lg text-muted hover:bg-track hover:text-ink"
-            >
-              <X className="size-4" />
-            </button>
-          ) : null}
-        </label>
+        <div className="flex items-center gap-2">
+          <label className="relative block flex-1">
+            <span className="sr-only">학생 검색</span>
+            <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted" aria-hidden />
+            <input
+              id="student-search"
+              type="search"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="이름, 학생 코드(S-0001), 학교, 학부모 연락처 뒷자리"
+              className="h-11 w-full rounded-xl border border-line bg-white pr-10 pl-10 text-sm text-ink outline-none placeholder:text-muted/80 focus:border-brand focus:ring-2 focus:ring-brand/20 [&::-webkit-search-cancel-button]:hidden"
+              autoFocus
+            />
+            {query.isFetching ? (
+              <LoaderCircle className="absolute top-1/2 right-3.5 size-4 -translate-y-1/2 animate-spin text-muted" aria-label="검색 중" />
+            ) : input ? (
+              <button
+                type="button"
+                onClick={() => setInput('')}
+                aria-label="검색어 지우기"
+                className="absolute top-1/2 right-2 flex size-7 -translate-y-1/2 items-center justify-center rounded-lg text-muted hover:bg-track hover:text-ink"
+              >
+                <X className="size-4" />
+              </button>
+            ) : null}
+          </label>
+          <button type="button" onClick={() => setCreating(true)} aria-label="학생 등록"
+            className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-xl bg-brand px-4 text-sm font-bold text-white hover:bg-brand-700">
+            <UserPlus className="size-4" aria-hidden /> <span className="hidden sm:inline">학생 등록</span>
+          </button>
+        </div>
 
         <div className="flex flex-wrap gap-1.5" role="group" aria-label="상태 필터">
           {STATUS_FILTERS.map((s) => {
@@ -178,6 +187,8 @@ export function StudentsView() {
           </nav>
         )}
       </Card>
+
+      <StudentFormDialog open={creating} onClose={() => setCreating(false)} onSaved={(s) => navigate(`/admin/students/${s.id}`)} />
     </>
   )
 }

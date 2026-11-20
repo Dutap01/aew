@@ -4,6 +4,38 @@
  */
 
 export interface paths {
+    "/api/admin/students/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["detail"];
+        put: operations["update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/students/{id}/enrollments/{enrollmentId}/end": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["endEnrollment"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/inquiries/{id}/status": {
         parameters: {
             query?: never;
@@ -20,6 +52,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/classes/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["detail_1"];
+        put: operations["update_1"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/appointments/{id}": {
         parameters: {
             query?: never;
@@ -28,7 +76,7 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        put: operations["update"];
+        put: operations["update_2"];
         post?: never;
         delete?: never;
         options?: never;
@@ -68,6 +116,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/students": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["search"];
+        put?: never;
+        post: operations["create_1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/students/{id}/notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["addNote"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/students/{id}/enrollments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["enroll"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/notifications/{id}/resend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["resend"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/inquiries/{id}/student": {
         parameters: {
             query?: never;
@@ -93,7 +205,23 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["addNote"];
+        post: operations["addNote_1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/classes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list"];
+        put?: never;
+        post: operations["create_2"];
         delete?: never;
         options?: never;
         head?: never;
@@ -109,7 +237,7 @@ export interface paths {
         };
         get: operations["range"];
         put?: never;
-        post: operations["create_1"];
+        post: operations["create_3"];
         delete?: never;
         options?: never;
         head?: never;
@@ -164,23 +292,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/admin/students": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["search"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/inquiries": {
+    "/api/admin/notifications": {
         parameters: {
             query?: never;
             header?: never;
@@ -196,6 +308,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/notifications/counts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["counts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/inquiries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["search_2"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/inquiries/{id}": {
         parameters: {
             query?: never;
@@ -203,7 +347,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["detail"];
+        get: operations["detail_2"];
         put?: never;
         post?: never;
         delete?: never;
@@ -219,7 +363,39 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["counts"];
+        get: operations["counts_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/classes/teachers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["teachers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/classes/levels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["levels_1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -248,6 +424,73 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        StudentUpsertRequest: {
+            name: string;
+            school?: string | null;
+            grade?: string | null;
+            parentName?: string | null;
+            parentPhone?: string | null;
+            /** @enum {string|null} */
+            status?: "consulting" | "test_scheduled" | "enrolled" | "paused" | "withdrawn" | null;
+            memo?: string | null;
+        };
+        ClassScheduleSlot: {
+            /** Format: int32 */
+            weekday: number;
+            /** @example 16:00 */
+            startTime: string;
+            /** @example 17:30 */
+            endTime: string;
+        };
+        Enrollment: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            classId: string;
+            className: string;
+            level: string;
+            teacherName: string | null;
+            schedules: components["schemas"]["ClassScheduleSlot"][];
+            /** Format: date */
+            startDate: string;
+            /** Format: date */
+            endDate: string | null;
+        };
+        StudentDetail: {
+            /** Format: uuid */
+            id: string;
+            studentCode: string;
+            name: string;
+            school: string | null;
+            grade: string | null;
+            parentName: string | null;
+            parentPhone: string | null;
+            /** @enum {string} */
+            status: "consulting" | "test_scheduled" | "enrolled" | "paused" | "withdrawn";
+            memo: string | null;
+            loginId: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            enrollments: components["schemas"]["Enrollment"][];
+            timeline: components["schemas"]["TimelineEvent"][];
+        };
+        TimelineEvent: {
+            /** @enum {string} */
+            kind: "created" | "inquiry" | "note" | "appointment" | "enrollment_start" | "enrollment_end" | "status_change";
+            /** Format: date-time */
+            at: string;
+            title: string;
+            detail: string | null;
+            actorName: string | null;
+            /** Format: uuid */
+            refId: string | null;
+        };
+        EnrollmentEndRequest: {
+            /** Format: date */
+            endDate?: string | null;
+        };
         InquiryStatusChangeRequest: {
             /** @enum {string} */
             status: "received" | "contacted" | "scheduled" | "completed" | "canceled";
@@ -322,6 +565,49 @@ export interface components {
             date: string;
             time: string;
         };
+        ClassUpsertRequest: {
+            name: string;
+            level: string;
+            /** Format: uuid */
+            teacherId?: string | null;
+            /** Format: int32 */
+            capacity?: number | null;
+            active?: boolean;
+            schedules: components["schemas"]["ClassScheduleSlot"][];
+        };
+        ClassDetail: {
+            info: components["schemas"]["ClassSummary"];
+            students: components["schemas"]["ClassStudent"][];
+        };
+        ClassStudent: {
+            /** Format: uuid */
+            enrollmentId: string;
+            /** Format: uuid */
+            studentId: string;
+            studentCode: string;
+            name: string;
+            school: string | null;
+            grade: string | null;
+            /** @enum {string} */
+            status: "consulting" | "test_scheduled" | "enrolled" | "paused" | "withdrawn";
+            /** Format: date */
+            startDate: string;
+        };
+        ClassSummary: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            level: string;
+            /** Format: uuid */
+            teacherId: string | null;
+            teacherName: string | null;
+            /** Format: int32 */
+            capacity: number | null;
+            active: boolean;
+            schedules: components["schemas"]["ClassScheduleSlot"][];
+            /** Format: int32 */
+            studentCount: number;
+        };
         AppointmentUpdateRequest: {
             title: string;
             /** Format: date-time */
@@ -352,12 +638,18 @@ export interface components {
             /** Format: uuid */
             id: string;
         };
+        NoteCreateRequest: {
+            content: string;
+        };
+        EnrollmentCreateRequest: {
+            /** Format: uuid */
+            classId: string;
+            /** Format: date */
+            startDate?: string | null;
+        };
         LinkStudentRequest: {
             /** Format: uuid */
             existingStudentId?: string | null;
-        };
-        NoteCreateRequest: {
-            content: string;
         };
         AppointmentCreateRequest: {
             /** Format: uuid */
@@ -429,6 +721,50 @@ export interface components {
             parentPhone: string | null;
             classes: string[];
         };
+        NotificationResponse: {
+            /** Format: uuid */
+            id: string;
+            templateCode: string;
+            templateLabel: string;
+            toPhone: string;
+            body: string;
+            /** @enum {string} */
+            status: "queued" | "sending" | "succeeded" | "failed";
+            /** Format: int32 */
+            attempts: number;
+            error: string | null;
+            providerMessageId: string | null;
+            /** Format: date-time */
+            sentAt: string | null;
+            /** Format: date-time */
+            nextAttemptAt: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            appointmentId: string | null;
+            /** Format: uuid */
+            inquiryId: string | null;
+        };
+        PageResponseNotificationResponse: {
+            items: components["schemas"]["NotificationResponse"][];
+            /** Format: int64 */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            size: number;
+        };
+        NotificationCounts: {
+            /** Format: int64 */
+            queued: number;
+            /** Format: int64 */
+            sending: number;
+            /** Format: int64 */
+            succeeded: number;
+            /** Format: int64 */
+            failed: number;
+            sender: string;
+        };
         InquirySummary: {
             /** Format: uuid */
             id: string;
@@ -484,6 +820,81 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    detail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["StudentDetail"];
+                };
+            };
+        };
+    };
+    update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StudentUpsertRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["StudentDetail"];
+                };
+            };
+        };
+    };
+    endEnrollment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                enrollmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EnrollmentEndRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["StudentDetail"];
+                };
+            };
+        };
+    };
     changeStatus: {
         parameters: {
             query?: never;
@@ -510,7 +921,55 @@ export interface operations {
             };
         };
     };
-    update: {
+    detail_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ClassDetail"];
+                };
+            };
+        };
+    };
+    update_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClassUpsertRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ClassDetail"];
+                };
+            };
+        };
+    };
+    update_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -586,6 +1045,127 @@ export interface operations {
             };
         };
     };
+    search: {
+        parameters: {
+            query?: {
+                q?: string;
+                status?: "consulting" | "test_scheduled" | "enrolled" | "paused" | "withdrawn";
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PageResponseStudentSummary"];
+                };
+            };
+        };
+    };
+    create_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StudentUpsertRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["StudentDetail"];
+                };
+            };
+        };
+    };
+    addNote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NoteCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["StudentDetail"];
+                };
+            };
+        };
+    };
+    enroll: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EnrollmentCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["StudentDetail"];
+                };
+            };
+        };
+    };
+    resend: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     linkStudent: {
         parameters: {
             query?: never;
@@ -612,7 +1192,7 @@ export interface operations {
             };
         };
     };
-    addNote: {
+    addNote_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -634,6 +1214,52 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["InquiryDetail"];
+                };
+            };
+        };
+    };
+    list: {
+        parameters: {
+            query?: {
+                all?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ClassSummary"][];
+                };
+            };
+        };
+    };
+    create_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClassUpsertRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ClassDetail"];
                 };
             };
         };
@@ -662,7 +1288,7 @@ export interface operations {
             };
         };
     };
-    create_1: {
+    create_3: {
         parameters: {
             query?: never;
             header?: never;
@@ -748,11 +1374,11 @@ export interface operations {
             };
         };
     };
-    search: {
+    search_1: {
         parameters: {
             query?: {
                 q?: string;
-                status?: "consulting" | "test_scheduled" | "enrolled" | "paused" | "withdrawn";
+                status?: "queued" | "sending" | "succeeded" | "failed";
                 page?: number;
                 size?: number;
             };
@@ -768,12 +1394,34 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["PageResponseStudentSummary"];
+                    "*/*": components["schemas"]["PageResponseNotificationResponse"];
                 };
             };
         };
     };
-    search_1: {
+    counts: {
+        parameters: {
+            query?: {
+                q?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["NotificationCounts"];
+                };
+            };
+        };
+    };
+    search_2: {
         parameters: {
             query?: {
                 q?: string;
@@ -799,7 +1447,7 @@ export interface operations {
             };
         };
     };
-    detail: {
+    detail_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -821,7 +1469,7 @@ export interface operations {
             };
         };
     };
-    counts: {
+    counts_1: {
         parameters: {
             query?: {
                 q?: string;
@@ -840,6 +1488,46 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["InquiryCounts"];
+                };
+            };
+        };
+    };
+    teachers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["StaffOption"][];
+                };
+            };
+        };
+    };
+    levels_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": string[];
                 };
             };
         };

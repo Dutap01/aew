@@ -79,6 +79,7 @@ function Form({ target, onClose, onSaved }: { target: AppointmentFormTarget; onC
       queryClient.invalidateQueries({ queryKey: ['appointments'] })
       queryClient.invalidateQueries({ queryKey: ['inquiry'] })
       queryClient.invalidateQueries({ queryKey: ['inquiries'] })
+      queryClient.invalidateQueries({ queryKey: ['notifications'] })
       onSaved?.(a)
       onClose()
     },

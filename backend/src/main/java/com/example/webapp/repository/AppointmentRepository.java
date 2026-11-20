@@ -72,14 +72,15 @@ public class AppointmentRepository {
                 .and(CONSULT_APPOINTMENTS.STATUS.eq(AppointmentStatus.scheduled)));
     }
 
-    /** 접수 취소 시 남은 예약 일정도 취소. 바뀐 건수 */
-    public int cancelScheduled(UUID inquiryId) {
+    /** 접수 취소 시 남은 예약 일정도 취소. 취소한 일정 id */
+    public List<UUID> cancelScheduled(UUID inquiryId) {
         return dsl.update(CONSULT_APPOINTMENTS)
                 .set(CONSULT_APPOINTMENTS.STATUS, AppointmentStatus.canceled)
                 .set(CONSULT_APPOINTMENTS.UPDATED_AT, java.time.OffsetDateTime.now())
                 .where(CONSULT_APPOINTMENTS.INQUIRY_ID.eq(inquiryId)
                         .and(CONSULT_APPOINTMENTS.STATUS.eq(AppointmentStatus.scheduled)))
-                .execute();
+                .returning(CONSULT_APPOINTMENTS.ID)
+                .fetch(CONSULT_APPOINTMENTS.ID);
     }
 
     /** 담당자로 고를 수 있는 사람: 사용 중인 대표·상담실장 */
